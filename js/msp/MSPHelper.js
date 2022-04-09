@@ -178,8 +178,9 @@ var mspHelper = (function (gui) {
                 SENSOR_DATA.kinematics[2] = data.getInt16(4, true); // z
                 break;
             case MSPCodes.MSP_ALTITUDE:
-                SENSOR_DATA.altitude = parseFloat((data.getInt32(0, true) / 100.0).toFixed(2)); // correct scale factor
-                SENSOR_DATA.barometer = parseFloat((data.getInt32(6, true) / 100.0).toFixed(2)); // correct scale factor
+                SENSOR_DATA.altitude = data.getInt32(0, true) / 100; // correct scale factor
+                SENSOR_DATA.msl_altitude = data.getInt32(4, true) / 100; // correct scale factor
+                SENSOR_DATA.barometer = data.getInt32(8, true) / 100.0; // correct scale factor
                 break;
             case MSPCodes.MSP_SONAR:
                 SENSOR_DATA.sonar = data.getInt32(0, true);
@@ -596,6 +597,18 @@ var mspHelper = (function (gui) {
             case MSPCodes.MSP_SET_RAW_RC:
                 break;
             case MSPCodes.MSP_SET_RAW_GPS:
+                // no response
+                break;
+            case MSPCodes.MSP_SIMULATOR:
+                // SIM_INPUTS.motor = data.getUint16(0, true);
+                // SIM_INPUTS.S1 = data.getUint16(2, true);
+                // SIM_INPUTS.S2 = data.getUint16(4, true);
+                // SIM_INPUTS.S3 = data.getUint16(6, true);
+                // SIM_INPUTS.S4 = data.getUint16(8, true);
+                SIM_INPUTS.roll = data.getUint16(0, true);
+                SIM_INPUTS.pitch = data.getUint16(2, true);
+                SIM_INPUTS.yaw = data.getUint16(4, true);
+                SIM_INPUTS.throttle = data.getUint16(6, true);
                 break;
             case MSPCodes.MSP2_SET_PID:
                 console.log('PID settings saved');
@@ -2102,6 +2115,44 @@ var mspHelper = (function (gui) {
 
         MSP.send_message(MSPCodes.MSP_SET_RAW_RC, buffer, false);
     };
+
+    self.setSimulatorMode = function (flag) {
+        let buffer = [];
+        buffer.push8(flag);
+        MSP.send_message(MSPCodes.MSP_SIMULATOR, buffer, false);
+    };
+    self.setSimulatorData = function (data, onDataCallback)
+    {
+        let buffer = [];
+        // sim_enable
+        buffer.push8(1);
+        // gps
+        buffer.push8(data.fix);
+        buffer.push8(data.numSat);
+        buffer.push32(data.lat);
+        buffer.push32(data.lon);
+        buffer.push32(data.alt);
+        buffer.push16(data.speed);
+        buffer.push16(data.course);
+        // angles
+        buffer.push16((data.roll + 180) * 10); //roll
+        buffer.push16((data.pitch + 180) * 10); //pitch
+        buffer.push16(data.yaw * 10); //yaw
+        // accel
+        buffer.push16(((data.accel_x + 32) * 1000).toFixed());
+        buffer.push16(((data.accel_y + 32) * 1000).toFixed());
+        buffer.push16(((data.accel_z + 32) * 1000).toFixed());
+        // gyro
+        buffer.push16(((data.gyro_x + 320) * 100).toFixed());
+        buffer.push16(((data.gyro_y + 320) * 100).toFixed());
+        buffer.push16(((data.gyro_z + 320) * 100).toFixed());
+        // baro
+        buffer.push32((data.baro * 3386.39).toFixed());
+
+        MSP.send_message(MSPCodes.MSP_SIMULATOR, buffer, false, function (response) {
+            onDataCallback();
+        });
+    }
 
     self.sendBlackboxConfiguration = function (onDataCallback) {
         var buffer = [];

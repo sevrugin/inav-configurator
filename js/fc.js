@@ -64,7 +64,8 @@ var CONFIG,
     SAFEHOMES,
     BOARD_ALIGNMENT,
     CURRENT_METER_CONFIG,
-    FEATURES;
+    FEATURES,
+    SIM_INPUTS;
 
 var FC = {
     restartRequired: false,
@@ -218,6 +219,7 @@ var FC = {
             accelerometer: [0, 0, 0],
             magnetometer: [0, 0, 0],
             altitude: 0,
+            msl_altitude: 0,
             barometer: 0,
             sonar: 0,
             air_speed: 0,
@@ -541,6 +543,18 @@ var FC = {
         SETTINGS = {};
 
         SAFEHOMES = new SafehomeCollection();
+
+        SIM_INPUTS = {
+            roll: 0,
+            pitch: 0,
+            yaw: 0,
+            throttle: 0,
+            // motor: 0,
+            // S1: 0,
+            // S2: 0,
+            // S3: 0,
+            // S4: 0
+        }
     },
     getOutputUsages: function() {
         return {

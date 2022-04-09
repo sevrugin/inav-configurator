@@ -140,6 +140,7 @@ var MSPCodes = {
 
     MSP_DEBUGMSG:           253,
     MSP_DEBUG:              254,
+    MSP_SIMULATOR:          256,
 
     // Additional baseflight commands that are not compatible with MultiWii
     MSP_UID:                160, // Unique device ID

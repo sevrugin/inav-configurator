@@ -1775,7 +1775,7 @@ dialog {
 
 /* Battery element styling*/
 
-#quad-status_wrapper {
+#quad-status_wrapper, #inav-connect-tab {
     display: none;
     color: white;
     font-size: 10px;
@@ -1790,6 +1790,10 @@ dialog {
     box-shadow: 0 1px 0 rgba(92, 92, 92, 0.5);
     background: #434343 -webkit-linear-gradient(top, transparent, rgba(0, 0, 0, 0.55));
     text-shadow: 0 1px rgba(0, 0, 0, 1.0);
+}
+
+#inav-connect-tab {
+    width: 120px;
 }
 
 .quad-status-contents {

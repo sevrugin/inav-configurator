@@ -83,6 +83,7 @@ helper.periodicStatusUpdater = (function () {
         }
 
         $('#quad-status_wrapper').show();
+        $('#inav-connect-tab').show();
     };
 
     publicScope.run = function () {

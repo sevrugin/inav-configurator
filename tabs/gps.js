@@ -147,7 +147,6 @@ TABS.gps.initialize = function (callback) {
         }
 
         function update_ui() {
-
             let lat = GPS_DATA.lat / 10000000;
             let lon = GPS_DATA.lon / 10000000;
 
@@ -159,10 +158,12 @@ TABS.gps.initialize = function (callback) {
             }
 
             $('.GPS_info td.fix').html(gpsFixType);
-            $('.GPS_info td.alt').text(GPS_DATA.alt + ' m');
+            $('.GPS_info td.alt').text(GPS_DATA.alt.toFixed(2) + ' m');
             $('.GPS_info td.lat').text(lat.toFixed(4) + ' deg');
             $('.GPS_info td.lon').text(lon.toFixed(4) + ' deg');
-            $('.GPS_info td.speed').text(GPS_DATA.speed + ' cm/s');
+            //$('.GPS_info td.speed').text(GPS_DATA.speed + ' cm/s');
+            $('.GPS_info td.speed').text((GPS_DATA.speed*60*60/100/1000).toFixed(3) + ' km/h');
+            $('.GPS_info td.course').text(GPS_DATA.ground_course + ' deg');
             $('.GPS_info td.sats').text(GPS_DATA.numSat);
             $('.GPS_info td.distToHome').text(GPS_DATA.distanceToHome + ' m');
 
@@ -192,7 +193,7 @@ TABS.gps.initialize = function (callback) {
                             anchor: [0.5, 1],
                             opacity: 1,
                             scale: 0.5,
-                            src: '../images/icons/cf_icon_position.png'
+                            src: '../images/icons/cf_icon_position_plane.png'
                         }))
                     });
 
@@ -218,7 +219,11 @@ TABS.gps.initialize = function (callback) {
                 }
 
                 iconGeometry.setCoordinates(center);
-
+                let rotation = GPS_DATA.ground_course - 43;
+                if (rotation < 0) {
+                    rotation += 360;
+                }
+                iconStyle.getImage().setRotation(rotation * (Math.PI/180));
             }
         }
 

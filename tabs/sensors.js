@@ -286,7 +286,7 @@ TABS.sensors.initialize = function (callback) {
             gyro_data = initDataArray(3),
             accel_data = initDataArray(3),
             mag_data = initDataArray(3),
-            altitude_data = initDataArray(2),
+            altitude_data = initDataArray(3),
             sonar_data = initDataArray(1),
             airspeed_data = initDataArray(1),
             temperature_data = [
@@ -547,8 +547,9 @@ TABS.sensors.initialize = function (callback) {
 
             function update_altitude_graph() {
                 updateGraphHelperSize(altitudeHelpers);
-                samples_altitude_i = addSampleToData(altitude_data, samples_altitude_i, [SENSOR_DATA.altitude, SENSOR_DATA.barometer]);
+                samples_altitude_i = addSampleToData(altitude_data, samples_altitude_i, [SENSOR_DATA.altitude, SENSOR_DATA.barometer, SENSOR_DATA.msl_altitude]);
                 drawGraph(altitudeHelpers, altitude_data, samples_altitude_i);
+                raw_data_text_ements.z[3].text(SENSOR_DATA.msl_altitude.toFixed(2));
                 raw_data_text_ements.x[3].text(SENSOR_DATA.altitude.toFixed(2));
                 raw_data_text_ements.y[3].text(SENSOR_DATA.barometer.toFixed(2));
             }

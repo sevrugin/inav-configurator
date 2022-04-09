@@ -528,6 +528,125 @@ $(document).ready(function () {
 
     });
 
+    const XPlaneLegacyClient = require('./js/libraries/XPlaneLegacyClient.js');
+
+    let xPlane = new XPlaneLegacyClient({ debug: false });
+    let simInterval;
+    let isSimDataUpdated = false;
+    let simData = {
+        // gps
+        fix: 0,
+        numSat: 0,
+        lat: 0,
+        lon: 0,
+        alt: 0,
+        speed: 0,
+        course: 0,
+        // position
+        roll: 0,
+        pitch: 0,
+        yaw: 0, // heading
+        // accel
+        accel_x: 0,
+        accel_y: 0,
+        accel_z: 0,
+        // gyro
+        gyro_x: 0,
+        gyro_y: 0,
+        gyro_z: 0,
+        // baro
+        baro: 0,
+    }
+    $("#xplane-checkbox").on('change', function() {
+        var state = $(this).is(':checked');
+
+        if (state) {
+            mspHelper.setSimulatorMode(1);
+            xPlane.initConnection();
+            simData.fix = 2;
+            simData.numSat = 10;
+
+            // GPS
+            xPlane.requestDataRef('sim/flightmodel/position/latitude', 10, function (ref, value) {
+                simData.lat = value * 10000000; isSimDataUpdated = true;
+            });
+            xPlane.requestDataRef('sim/flightmodel/position/longitude', 10, function (ref, value) {
+                simData.lon = value * 10000000; isSimDataUpdated = true;
+            });
+            xPlane.requestDataRef('sim/flightmodel/position/elevation', 10, function (ref, value) {
+                simData.alt = (value * 100).toFixed(); isSimDataUpdated = true;
+            });
+            xPlane.requestDataRef('sim/flightmodel/position/groundspeed', 10, function (ref, value) {
+                simData.speed = value * 100; isSimDataUpdated = true;
+            });
+            // position
+            xPlane.requestDataRef('sim/flightmodel/position/phi', 10, function (ref, value) {
+                simData.roll = value; isSimDataUpdated = true;
+            });
+            xPlane.requestDataRef('sim/flightmodel/position/theta', 10, function (ref, value) {
+                simData.pitch = value * -1; isSimDataUpdated = true;
+            });
+            xPlane.requestDataRef('sim/flightmodel/position/psi', 10, function (ref, value) {
+                simData.yaw = value; simData.course = value; isSimDataUpdated = true;
+            });
+            // Accelerometer
+            xPlane.requestDataRef('sim/flightmodel/forces/g_axil', 10, function (ref, value) {
+                simData.accel_x = value; isSimDataUpdated = true;
+            });
+            xPlane.requestDataRef('sim/flightmodel/forces/g_side', 10, function (ref, value) {
+                simData.accel_y = value; isSimDataUpdated = true;
+            });
+            xPlane.requestDataRef('sim/flightmodel/forces/g_nrml', 10, function (ref, value) {
+                simData.accel_z = value; isSimDataUpdated = true;
+            });
+            // Gyro
+            xPlane.requestDataRef('sim/flightmodel/position/P', 10, function (ref, value) {
+                simData.gyro_z = value; isSimDataUpdated = true; // roll
+            });
+            xPlane.requestDataRef('sim/flightmodel/position/Q', 10, function (ref, value) {
+                simData.gyro_y = value * -1; isSimDataUpdated = true; // pitch
+            });
+            xPlane.requestDataRef('sim/flightmodel/position/R', 10, function (ref, value) {
+                simData.gyro_x = value; isSimDataUpdated = true; // yaw
+            });
+            // Barometer
+            xPlane.requestDataRef('sim/weather/barometer_current_inhg', 10, function (ref, value) {
+                simData.baro = value; isSimDataUpdated = true;
+            });
+            // xPlane.setDataRef('sim/operation/override/override_control_surfaces', 1);
+            simInterval = setInterval(() => {
+                if (isSimDataUpdated) {
+                    mspHelper.setSimulatorData(simData, function(response) {
+                        // xPlane.setDataRef('sim/flightmodel2/wing/aileron1_deg[0]', ((SIM_INPUTS.S1-1500)/500*90).toFixed());
+                        // xPlane.setDataRef('sim/flightmodel2/wing/aileron1_deg[1]', ((SIM_INPUTS.S2-1500)/500*90).toFixed());
+                        // xPlane.setDataRef('sim/flightmodel/controls/rail1def', ((SIM_INPUTS.S1-1500)/500*90).toFixed());
+                        // xPlane.setDataRef('sim/flightmodel/controls/lail1def', ((SIM_INPUTS.S2-1500)/500*90).toFixed());
+                        // xPlane.setDataRef('sim/flightmodel2/wing/elevator1_deg[8]', ((SIM_INPUTS.S1-1500)/500*90).toFixed());
+                        // xPlane.setDataRef('sim/flightmodel2/wing/rudder1_deg[10]', ((SIM_INPUTS.S4-1500)/500*90).toFixed());
+                        //xPlane.setDataRef('sim/cockpit2/engine/actuators/throttle_ratio_all', (SIM_INPUTS.motor-1000)/1000);
+
+                        xPlane.setDataRef('sim/joystick/yoke_pitch_ratio', (SIM_INPUTS.pitch/500-1) * -1);
+                        xPlane.setDataRef('sim/joystick/yoke_roll_ratio', SIM_INPUTS.roll/500-1);
+                        xPlane.setDataRef('sim/joystick/yoke_heading_ratio', 0);//(SIM_INPUTS.yaw/500-1) * -1);
+
+                        xPlane.setDataRef('sim/cockpit2/engine/actuators/throttle_ratio_all', (SIM_INPUTS.throttle/1000));
+                        console.log(SIM_INPUTS);
+                    });
+                }
+                isSimDataUpdated = false;
+            }, 10);
+
+            GUI.log('X-Plane CONNECTED');
+        }else{
+            // xPlane.setDataRef('sim/operation/override/override_control_surfaces', 0);
+            clearInterval(simInterval);
+            mspHelper.setSimulatorMode(0);
+            xPlane.disconnect();
+
+            GUI.log('X-Plane DISCONNECTED');
+        }
+    });
+
     var profile_e = $('#profilechange');
 
     profile_e.change(function () {

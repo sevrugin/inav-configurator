@@ -389,6 +389,10 @@ function onClosed(result) {
     $('#portsinput').show();
     $('#dataflash_wrapper_global').hide();
     $('#quad-status_wrapper').hide();
+    if ($('#xplane-checkbox').is(':checked')) {
+        $('#xplane-checkbox').click();
+    }
+    $('#inav-connect-tab').hide();
 
     updateFirmwareVersion();
 }
