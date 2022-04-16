@@ -556,6 +556,10 @@ $(document).ready(function () {
         gyro_z: 0,
         // baro
         baro: 0,
+        // velocity
+        velocity_x: 0,
+        velocity_y: 0,
+        velocity_z: 0,
     }
     $("#xplane-checkbox").on('change', function() {
         var state = $(this).is(':checked');
@@ -591,28 +595,38 @@ $(document).ready(function () {
             });
             // Accelerometer
             xPlane.requestDataRef('sim/flightmodel/forces/g_axil', 10, function (ref, value) {
-                simData.accel_x = value; isSimDataUpdated = true;
+                simData.accel_x = value * -1; isSimDataUpdated = true;
             });
             xPlane.requestDataRef('sim/flightmodel/forces/g_side', 10, function (ref, value) {
-                simData.accel_y = value; isSimDataUpdated = true;
+                simData.accel_y = value * -1; isSimDataUpdated = true;
             });
             xPlane.requestDataRef('sim/flightmodel/forces/g_nrml', 10, function (ref, value) {
                 simData.accel_z = value; isSimDataUpdated = true;
             });
             // Gyro
             xPlane.requestDataRef('sim/flightmodel/position/P', 10, function (ref, value) {
-                simData.gyro_z = value; isSimDataUpdated = true; // roll
+                simData.gyro_x = value; isSimDataUpdated = true; // roll
             });
             xPlane.requestDataRef('sim/flightmodel/position/Q', 10, function (ref, value) {
                 simData.gyro_y = value * -1; isSimDataUpdated = true; // pitch
             });
             xPlane.requestDataRef('sim/flightmodel/position/R', 10, function (ref, value) {
-                simData.gyro_x = value; isSimDataUpdated = true; // yaw
+                simData.gyro_z = value * -1; isSimDataUpdated = true; // yaw
             });
             // Barometer
             xPlane.requestDataRef('sim/weather/barometer_current_inhg', 10, function (ref, value) {
                 simData.baro = value; isSimDataUpdated = true;
             });
+            // // Velocity
+            // xPlane.requestDataRef('sim/flightmodel/forces/vx_acf_axis', 10, function (ref, value) {
+            //     simData.velocity_x = value; isSimDataUpdated = true;
+            // });
+            // xPlane.requestDataRef('sim/flightmodel/forces/vy_acf_axis', 10, function (ref, value) {
+            //     simData.velocity_y = value; isSimDataUpdated = true;
+            // });
+            // xPlane.requestDataRef('sim/flightmodel/forces/vz_acf_axis', 10, function (ref, value) {
+            //     simData.velocity_z = value; isSimDataUpdated = true;
+            // });
             // xPlane.setDataRef('sim/operation/override/override_control_surfaces', 1);
             simInterval = setInterval(() => {
                 if (isSimDataUpdated) {
@@ -630,7 +644,7 @@ $(document).ready(function () {
                         xPlane.setDataRef('sim/joystick/yoke_heading_ratio', 0);//(SIM_INPUTS.yaw/500-1) * -1);
 
                         xPlane.setDataRef('sim/cockpit2/engine/actuators/throttle_ratio_all', (SIM_INPUTS.throttle/1000));
-                        console.log(SIM_INPUTS);
+                        //console.log(SIM_INPUTS);
                     });
                 }
                 isSimDataUpdated = false;
