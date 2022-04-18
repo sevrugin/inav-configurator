@@ -1,0 +1,125 @@
+<html>
+<head>
+    <title>OSD</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript" src="/build/osd-simulator.js"></script>
+<style>
+    html, body, .avionics {
+        font: bold 18px courier;
+        width: 100%; height: 100%;
+    }
+    body {
+        margin: 0px;
+    }
+    div.latlon div {
+        display: inline-block;
+        padding: 4px 10px;
+    }
+    div.heading div {
+        display: inline-block;
+        padding: 4px 0px;
+    }
+    div.latlon, div.heading {
+        text-align: center;
+    }
+    div.airspeed div, div.altitude div, div.barometer div {
+        display: inline-block;
+    }
+    div.airspeed {
+        position: absolute;
+        top: 150px;
+        left: 0px;
+        width: 100px;
+        text-align: right;
+    }
+    div.barometer {
+        position: absolute;
+        top: 200px;
+        right: 0px;
+        width: 100px;
+        text-align: left;
+    }
+    div.altitude {
+        position: absolute;
+        top: 150px;
+        right: 0px;
+        width: 100px;
+        text-align: left;
+    }
+    div.horizon {
+        position:absolute;
+        margin-left: 100px;
+        height: 200px;
+        width: 300px;
+        text-align: center;
+        vertical-align: center;
+    }
+    .horizon #line {
+        position: absolute;
+        background-image: linear-gradient(to right, black 33%, rgba(255,255,255,0) 0%);
+        background-position: bottom;
+        background-size: 25px 1px;
+        background-repeat: repeat-x;
+        width: 260px;
+        height: 1px;
+        margin-left: 20px;
+        top: 100px;
+        /*transform: rotate(-25deg);*/
+    }
+    .horizon .dot {
+        height: 6px;
+        width: 6px;
+        border: solid 1px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-top: 97px;
+    }
+    div.attitude {
+        position: absolute;
+    }
+    div.attitude div, div.attitude span {
+        display: inline-block;
+        margin-top: 25px;
+        margin-left: 6px;
+    }
+    #pitch {
+        margin-right: 40px;
+    }
+</style>
+
+</head>
+<body>
+<div>
+    <div class="latlon">
+        <div id="latitude">--</div>
+        <div id="longitude">--</div>
+    </div>
+    <div class="heading">
+        <div class="attitude">
+            <span>pch</span><div id="pitch">--</div>
+            <span>rll</span><div id="roll">--</div>
+        </div>
+        <div id="heading">--</div>
+        <span>&deg;</span>
+    </div>
+    <div class="horizon">
+        <div id="line"></div>
+        <div class="dot"></div>
+    </div>
+<!-- right-->
+    <div class="airspeed">
+        <div id="speed">--</div>
+        <div>kmh</div>
+    </div>
+<!-- right-->
+    <div class="altitude">
+        <div id="alt">--</div>
+        <div>m</div>
+    </div>
+    <div class="barometer">
+        <div id="baro">--</div>
+        <div>baro</div>
+    </div>
+</div>
+</body>
+</html>

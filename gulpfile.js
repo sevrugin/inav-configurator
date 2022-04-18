@@ -147,6 +147,9 @@ sources.receiverJs = [
 sources.debugTraceJs = [
     './js/debug_trace.js'
 ];
+sources.osdSimulatorJs = [
+    './js/osd-simulator.js'
+];
 
 sources.hexParserJs = [
     './js/workers/hex_parser.js',
@@ -158,6 +161,7 @@ var output = {
     receiverCss: 'receiver-msp.css',
     receiverJs: 'receiver-msp.js',
     debugTraceJs: 'debug-trace.js',
+    osdSimulatorJs: 'osd-simulator.js',
     hexParserJs: 'hex_parser.js',
 };
 

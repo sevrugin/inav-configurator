@@ -528,6 +528,24 @@ $(document).ready(function () {
 
     });
 
+    $("a.open-osd-window").click(function () {
+        var windowWidth = 500;
+        var windowHeight = 300;
+
+        chrome.app.window.create("/tabs/osd-simulator.html", {
+            id: "osd-simulator",
+            innerBounds: {
+                minWidth: windowWidth, minHeight: windowHeight,
+                width: windowWidth, height: windowHeight,
+            },
+            alwaysOnTop: true
+        }, function (createdWindow) {
+            createdWindow.contentWindow.getFlightData = function () { return simData || ''; };
+            return true;
+        });
+        return false;
+    });
+
     const XPlaneLegacyClient = require('./js/libraries/XPlaneLegacyClient.js');
 
     let xPlane = new XPlaneLegacyClient({ debug: false });
@@ -648,7 +666,7 @@ $(document).ready(function () {
                     });
                 }
                 isSimDataUpdated = false;
-            }, 10);
+            }, 50);
 
             GUI.log('X-Plane CONNECTED');
         }else{
