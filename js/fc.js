@@ -65,7 +65,8 @@ var CONFIG,
     BOARD_ALIGNMENT,
     CURRENT_METER_CONFIG,
     FEATURES,
-    SIM_INPUTS;
+    SIM_INPUTS,
+    TELEMETRY;
 
 var FC = {
     restartRequired: false,
@@ -549,11 +550,16 @@ var FC = {
             pitch: 0,
             yaw: 0,
             throttle: 0,
-            // motor: 0,
-            // S1: 0,
-            // S2: 0,
-            // S3: 0,
-            // S4: 0
+        };
+
+        TELEMETRY = {
+            armed: false,
+            flightMode: null,
+            flightModeText: '',
+            distanceToHome: 0,
+            directionToHome: 0,
+            homeAltitude: 0,
+            throttlePercent: 0,
         }
     },
     getOutputUsages: function() {

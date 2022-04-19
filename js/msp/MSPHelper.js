@@ -599,6 +599,59 @@ var mspHelper = (function (gui) {
             case MSPCodes.MSP_SET_RAW_GPS:
                 // no response
                 break;
+            case MSPCodes.MSP_TELEMETRY:
+                TELEMETRY.armed = data.read8();
+                let code;
+                while ((code = data.read8()) !== null) {
+                    // console.log('code: '+code);
+                    switch (code) {
+                        case 0:
+                            TELEMETRY.flightMode = data.readU32();
+                            const flightModeFlags = {
+                                ANGLE        : (1 << 0),
+                                HORIZON      : (1 << 1),
+                                HEADING      : (1 << 2),
+                                ALTHOLD      : (1 << 3), // old BARO
+                                RTH          : (1 << 4), // old GPS_HOME
+                                POSHOLD      : (1 << 5), // old GPS_HOLD
+                                HEADFREE     : (1 << 6),
+                                LAUNCH       : (1 << 7),
+                                MANUAL       : (1 << 8),
+                                FAILSAFE     : (1 << 9),
+                                AUTO_TUNE    : (1 << 10), // old G-Tune
+                                WP           : (1 << 11),
+                                COURSE_HOLD  : (1 << 12),
+                                FLAPERON     : (1 << 13),
+                                TURN_ASSIST  : (1 << 14),
+                                TURTLE       : (1 << 15),
+                                SOARING      : (1 << 16),
+                            }
+                            TELEMETRY.flightModeText = '';
+                            for (let char in flightModeFlags) {
+                                if (TELEMETRY.flightMode & (flightModeFlags[char])) {
+                                    if (TELEMETRY.flightModeText) {
+                                        TELEMETRY.flightModeText+= ' + ';
+                                    }
+                                    TELEMETRY.flightModeText += char;
+                                }
+                            }
+                            break;
+                        case 1: // message
+                            break;
+                        case 2: // home position
+                            TELEMETRY.distanceToHome = data.readU16();
+                            TELEMETRY.directionToHome = data.readU16();
+                            TELEMETRY.homeAltitude = data.read32() / 100;
+                            break;
+                        case 3: // home position
+                            TELEMETRY.throttlePercent = data.readU8();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                // console.log(TELEMETRY.directionToHome)
+                break;
             case MSPCodes.MSP_SIMULATOR:
                 // SIM_INPUTS.motor = data.getUint16(0, true);
                 // SIM_INPUTS.S1 = data.getUint16(2, true);

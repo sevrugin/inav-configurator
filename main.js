@@ -534,13 +534,19 @@ $(document).ready(function () {
 
         chrome.app.window.create("/tabs/osd-simulator.html", {
             id: "osd-simulator",
-            innerBounds: {
-                minWidth: windowWidth, minHeight: windowHeight,
+            width: windowWidth, height: windowHeight,
+            bounds: {
                 width: windowWidth, height: windowHeight,
             },
+            resizable: false,
             alwaysOnTop: true
         }, function (createdWindow) {
             createdWindow.contentWindow.getFlightData = function () { return simData || ''; };
+            createdWindow.contentWindow.getTelemetryData = function () { return TELEMETRY || ''; };
+            createdWindow.contentWindow.checkTelemetry = function () {
+                MSP.send_message(MSPCodes.MSP_TELEMETRY, false, false, function () {
+                });
+            };
             return true;
         });
         return false;
@@ -596,7 +602,7 @@ $(document).ready(function () {
                 simData.lon = value * 10000000; isSimDataUpdated = true;
             });
             xPlane.requestDataRef('sim/flightmodel/position/elevation', 10, function (ref, value) {
-                simData.alt = (value * 100).toFixed(); isSimDataUpdated = true;
+                simData.alt = value.toFixed() * 100; isSimDataUpdated = true;
             });
             xPlane.requestDataRef('sim/flightmodel/position/groundspeed', 10, function (ref, value) {
                 simData.speed = value * 100; isSimDataUpdated = true;
@@ -662,7 +668,7 @@ $(document).ready(function () {
                         xPlane.setDataRef('sim/joystick/yoke_heading_ratio', 0);//(SIM_INPUTS.yaw/500-1) * -1);
 
                         xPlane.setDataRef('sim/cockpit2/engine/actuators/throttle_ratio_all', (SIM_INPUTS.throttle/1000));
-                        //console.log(SIM_INPUTS);
+                        // console.log(simData.course);
                     });
                 }
                 isSimDataUpdated = false;

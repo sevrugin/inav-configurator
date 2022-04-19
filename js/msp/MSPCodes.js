@@ -105,6 +105,7 @@ var MSPCodes = {
     MSP_RC_DEADBAND:        125,
     MSP_SENSOR_ALIGNMENT:   126,
     MSP_LED_STRIP_MODECOLOR:127,
+    MSP_TELEMETRY:          128,
     MSP_STATUS_EX:          150,    // Deprecated, do not use.
     MSP_SENSOR_STATUS:      151,
 

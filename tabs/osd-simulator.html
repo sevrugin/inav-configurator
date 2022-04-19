@@ -6,14 +6,29 @@
 <style>
     html, body, .avionics {
         font: bold 18px courier;
+        color: white;
+        background-color: #444;
         width: 100%; height: 100%;
+    }
+    .loading {
+        position: fixed; /* Sit on top of the page content */
+        width: 100%; /* Full width (cover the whole page) */
+        height: 100%; /* Full height (cover the whole page) */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 99999999; /* Specify a stack order in case you're using a different order for other elements */
+        padding-top: 50%;
+        text-align: center;
+        background-color: #444;
     }
     body {
         margin: 0px;
     }
     div.latlon div {
         display: inline-block;
-        padding: 4px 10px;
+        padding: 4px 10px 4px 0px;
     }
     div.heading div {
         display: inline-block;
@@ -22,7 +37,7 @@
     div.latlon, div.heading {
         text-align: center;
     }
-    div.airspeed div, div.altitude div, div.barometer div {
+    div.airspeed div, div.altitude div, div.barometer div, div.throttle div {
         display: inline-block;
     }
     div.airspeed {
@@ -32,9 +47,23 @@
         width: 100px;
         text-align: right;
     }
-    div.barometer {
+    div.arming-status {
         position: absolute;
         top: 200px;
+        left: 0px;
+        width: 100px;
+        text-align: right;
+    }
+    div.throttle {
+        position: absolute;
+        top: 32px;
+        right: 60px;
+        width: 100px;
+        text-align: left;
+    }
+    div.barometer {
+        position: absolute;
+        top: 220px;
         right: 0px;
         width: 100px;
         text-align: left;
@@ -56,23 +85,23 @@
     }
     .horizon #line {
         position: absolute;
-        background-image: linear-gradient(to right, black 33%, rgba(255,255,255,0) 0%);
-        background-position: bottom;
-        background-size: 25px 1px;
-        background-repeat: repeat-x;
         width: 260px;
-        height: 1px;
         margin-left: 20px;
         top: 100px;
+        transform: rotate(-25deg);
+    }
+    .dir-to-home {
+        position: absolute;
+        left: 245px;
+        top: 220px;
         /*transform: rotate(-25deg);*/
     }
     .horizon .dot {
-        height: 6px;
-        width: 6px;
-        border: solid 1px;
-        border-radius: 50%;
         display: inline-block;
-        margin-top: 97px;
+        margin-top: 99px;
+    }
+    .horizon .dot img {
+        display: inline-block;
     }
     div.attitude {
         position: absolute;
@@ -82,6 +111,12 @@
         margin-top: 25px;
         margin-left: 6px;
     }
+    div.flight-mode {
+        position: absolute;
+        top: 280px;
+        width: 100%;
+        text-align: center;
+    }
     #pitch {
         margin-right: 40px;
     }
@@ -89,37 +124,52 @@
 
 </head>
 <body>
-<div>
+<div class="loading">Loading...</div>
+<div class="osd">
+    <div id="preview"></div>
     <div class="latlon">
-        <div id="latitude">--</div>
-        <div id="longitude">--</div>
+        <span class="lat-title"></span> <div id="latitude">--</div>
+        <span class="lon-title"></span> <div id="longitude">--</div>
     </div>
     <div class="heading">
         <div class="attitude">
-            <span>pch</span><div id="pitch">--</div>
-            <span>rll</span><div id="roll">--</div>
+            <span class="pitch-title">P</span><div id="pitch">--</div>
+            <span class="roll-title">R</span><div id="roll">--</div>
         </div>
+        <span class="heading-title"></span>
         <div id="heading">--</div>
-        <span>&deg;</span>
+    </div>
+    <div class="throttle">
+        <span class="throttle-title"></span>
+        <div id="throttlePercent"></div>
     </div>
     <div class="horizon">
         <div id="line"></div>
         <div class="dot"></div>
     </div>
-<!-- right-->
+    <div class="dir-to-home"></div>
+<!-- left-->
     <div class="airspeed">
         <div id="speed">--</div>
-        <div>kmh</div>
+        <span class="kmh-title"></span>
     </div>
+    <div class="arming-status"></div>
 <!-- right-->
     <div class="altitude">
         <div id="alt">--</div>
-        <div>m</div>
+        <span class="alt-title"></span>
+        <br>
+        <div id="altHome">--</div>
+        <span class="alt-title"></span>
     </div>
     <div class="barometer">
+        <span class="dist-home-title"></span>
+        <div id="dist-home"></div><br>
         <div id="baro">--</div>
-        <div>baro</div>
+        <span class="baro-title">gPa</span>
     </div>
+<!-- down-->
+    <div class="flight-mode"></div>
 </div>
 </body>
 </html>
