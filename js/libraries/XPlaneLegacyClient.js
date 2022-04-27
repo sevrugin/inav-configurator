@@ -107,6 +107,21 @@ module.exports = class XPlaneClient {
     this._sendBuffer(buffer);
   }
 
+  sendVEHX(p, dat_lat, dat_lon, dat_ele, veh_psi_true, veh_the, veh_phi) {
+    const buffer = Buffer.alloc(45, 0x20);
+    buffer.write('VEHX', 0, 4);
+    buffer.writeInt8(0x00, 4); // null byte
+    buffer.writeInt32LE(0, 5); // plane num
+    buffer.writeDoubleLE(dat_lat*1, 9);
+    buffer.writeDoubleLE(dat_lon*1, 17);
+    buffer.writeDoubleLE(dat_ele*1, 25);
+    buffer.writeFloatLE(veh_psi_true*1, 33);
+    buffer.writeFloatLE(veh_the*1, 37);
+    buffer.writeFloatLE(veh_phi*1, 41);
+
+    this._sendBuffer(buffer);
+  }
+
   sendCommand(command) {
     const buffer = Buffer.alloc(5 + command.length + 1);
     buffer.write('CMND', 0, 4);

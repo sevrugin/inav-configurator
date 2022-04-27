@@ -3,12 +3,15 @@
     <title>OSD</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script type="text/javascript" src="/build/osd-simulator.js"></script>
+    <script type="text/javascript" src="/js/libraries/switchery/switchery.js"></script>
+    <link type="text/css" rel="stylesheet" href="../build/styles.css" media="all">
 <style>
-    html, body, .avionics {
-        font: bold 18px courier;
+    .osd {
+        /*position: fixed; !* Sit on top of the page content *!*/
+        width: 100%; /* Full width (cover the whole page) */
+        height: 340px; /* Full height (cover the whole page) */
         color: white;
-        background-color: #444;
-        width: 100%; height: 100%;
+        /*background-color: #444;*/
     }
     .loading {
         position: fixed; /* Sit on top of the page content */
@@ -23,9 +26,7 @@
         text-align: center;
         background-color: #444;
     }
-    body {
-        margin: 0px;
-    }
+    td {font-size: 12px;}
     div.latlon div {
         display: inline-block;
         padding: 4px 10px 4px 0px;
@@ -37,7 +38,7 @@
     div.latlon, div.heading {
         text-align: center;
     }
-    div.airspeed div, div.altitude div, div.barometer div, div.throttle div {
+    div.airspeed div, div.altitude div, div.barometer div, div.throttle div, div.satelites div {
         display: inline-block;
     }
     div.airspeed {
@@ -57,20 +58,27 @@
     div.throttle {
         position: absolute;
         top: 32px;
-        right: 60px;
-        width: 100px;
+        right: 50px;
+        width: 50px;
+        text-align: left;
+    }
+    div.satelites {
+        position: absolute;
+        top: 32px;
+        right: 120px;
+        width: 50px;
         text-align: left;
     }
     div.barometer {
         position: absolute;
-        top: 220px;
+        top: 270px;
         right: 0px;
         width: 100px;
         text-align: left;
     }
     div.altitude {
         position: absolute;
-        top: 150px;
+        top: 130px;
         right: 0px;
         width: 100px;
         text-align: left;
@@ -117,14 +125,28 @@
         width: 100%;
         text-align: center;
     }
+    div.error-messages {
+        position: absolute;
+        top: 300px;
+        width: 100%;
+        text-align: center;
+    }
     #pitch {
         margin-right: 40px;
+    }
+    .text-warning {
+        text-align: center;
+        color: #bb0000;
+        background-color: white;
+        padding: 4px;
+        font-weight: bold;
     }
 </style>
 
 </head>
 <body>
 <div class="loading">Loading...</div>
+<div class="msg-connect-inav text-warning" style="display: none;position: absolute; width: 100%;">Connect to XPlane to see more data</div>
 <div class="osd">
     <div id="preview"></div>
     <div class="latlon">
@@ -143,6 +165,10 @@
         <span class="throttle-title"></span>
         <div id="throttlePercent"></div>
     </div>
+    <div class="satelites">
+        <span class="satelites-title"></span>
+        <div id="satelites"></div>
+    </div>
     <div class="horizon">
         <div id="line"></div>
         <div class="dot"></div>
@@ -156,11 +182,17 @@
     <div class="arming-status"></div>
 <!-- right-->
     <div class="altitude">
-        <div id="alt">--</div>
-        <span class="alt-title"></span>
-        <br>
         <div id="altHome">--</div>
         <span class="alt-title"></span>
+        <br>
+        <div id="alt">--</div>
+        <span class="alt-title-msl"></span>
+        <br>
+        <div id="agl">--</div>
+        <span class="alt-title-agl"></span>
+        <br>
+        <div id="vario">--</div>
+        <span class="vario-title"></span>
     </div>
     <div class="barometer">
         <span class="dist-home-title"></span>
@@ -170,6 +202,39 @@
     </div>
 <!-- down-->
     <div class="flight-mode"></div>
+    <div class="error-messages"></div>
+</div>
+
+<div id="content" class="logopen">
+    <div class="tab-configuration spacer_box" style="height: auto;">
+        <div class="msg-set-gps text-warning" style="display: none; ">Pause X-Plane to be able to enter new GPS position</div>
+        <table class="mixer-table output-table">
+            <tbody>
+            <tr>
+                <td><input type="checkbox" class="feature toggle" id="xplane-gps-enabled" alt="Send GPS data"></td>
+                <td><input id="set_latlon" class="disableIfNotPaused" placeholder="50.12345 30.12345"></td>
+                <td><input id="set_altitude" class="disableIfNotPaused" placeholder="1000" style="width: 50px;"></td>
+                <td>
+                    <div class="btn default_btn narrow">
+                        <a href="#" id="send_latlon" class="disableIfNotPaused">Set</a>
+                    </div>
+                </td>
+                <td>
+                    <span>Set new Lat, Lon / Alt,m<span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div style="margin-top: 10px;">
+            <div class="btn default_btn narrow">
+                <a href="#" class="btn_set_mode" data-value="2">RST HOME</a>
+            </div>
+<!--            <div style="float: left; margin-left: 10px; padding-top: 2px;">-->
+<!--                <div style="float: left;">GPS enabled</div>-->
+<!--                <input type="checkbox" class="feature toggle" id="xplane-gps-enabled">-->
+<!--            </div>-->
+        </div>
+    </div>
 </div>
 </body>
 </html>

@@ -547,6 +547,9 @@ $(document).ready(function () {
                 MSP.send_message(MSPCodes.MSP_TELEMETRY, false, false, function () {
                 });
             };
+            createdWindow.contentWindow.getXplane = function () { return xPlane; };
+            createdWindow.contentWindow.getMspHelper = function () { return mspHelper; };
+            createdWindow.contentWindow.isXplaneConnected = function () { return $("#xplane-checkbox").is(':checked'); };
             return true;
         });
         return false;
@@ -559,11 +562,12 @@ $(document).ready(function () {
     let isSimDataUpdated = false;
     let simData = {
         // gps
-        fix: 0,
-        numSat: 0,
+        fix: 2, // GPS_FIX_3D
+        numSat: 10,
         lat: 0,
         lon: 0,
         alt: 0,
+        agl: 0, // altitude Above Ground Level
         speed: 0,
         course: 0,
         // position
@@ -591,21 +595,28 @@ $(document).ready(function () {
         if (state) {
             mspHelper.setSimulatorMode(1);
             xPlane.initConnection();
-            simData.fix = 2;
-            simData.numSat = 10;
+            // simData.fix = 2;
+            // simData.numSat = 10;
 
             // GPS
             xPlane.requestDataRef('sim/flightmodel/position/latitude', 10, function (ref, value) {
+                if (!simData.fix) return; // switched off from osd-simulator window
                 simData.lat = value * 10000000; isSimDataUpdated = true;
             });
             xPlane.requestDataRef('sim/flightmodel/position/longitude', 10, function (ref, value) {
+                if (!simData.fix) return; // switched off from osd-simulator window
                 simData.lon = value * 10000000; isSimDataUpdated = true;
             });
             xPlane.requestDataRef('sim/flightmodel/position/elevation', 10, function (ref, value) {
+                if (!simData.fix) return; // switched off from osd-simulator window
                 simData.alt = value.toFixed() * 100; isSimDataUpdated = true;
             });
             xPlane.requestDataRef('sim/flightmodel/position/groundspeed', 10, function (ref, value) {
+                if (!simData.fix) return; // switched off from osd-simulator window
                 simData.speed = value * 100; isSimDataUpdated = true;
+            });
+            xPlane.requestDataRef('sim/flightmodel/position/y_agl', 10, function (ref, value) {
+                simData.agl = value.toFixed();// debug data
             });
             // position
             xPlane.requestDataRef('sim/flightmodel/position/phi', 10, function (ref, value) {

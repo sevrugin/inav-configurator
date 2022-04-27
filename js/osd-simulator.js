@@ -262,6 +262,11 @@ FONT.write = function($obj, string)
     return true;
 }
 
+let simData;
+let xPlane;
+let isPaused = true;
+let needToReloadAircraft = false;
+
 FONT.initData();
 $.get('/resources/osd/default.mcm', function (data) {
     FONT.parseMCMFontFile(data);
@@ -270,8 +275,12 @@ $.get('/resources/osd/default.mcm', function (data) {
     $('.heading-title').replaceWith(FONT.draw(SYM.HEADING));
     $('.kmh-title').replaceWith(FONT.draw(SYM.KMH));
     $('.alt-title').replaceWith(FONT.draw(SYM.ALT_M));
+    FONT.write($('.alt-title-msl'), FONT.symbol(SYM.ALT_M)+'MSL');
+    FONT.write($('.alt-title-agl'), FONT.symbol(SYM.ALT_M)+'AGL');
     $('.throttle-title').replaceWith(FONT.draw(SYM.THR));
+    $('.satelites-title').replaceWith(FONT.draw(SYM.GPS_SAT1));
     $('.dist-home-title').replaceWith(FONT.draw(SYM.HOME));
+    $('.vario-title').replaceWith(FONT.draw(SYM.M_S));
     $('.dir-to-home').append(FONT.draw(SYM.DIR_TO_HOME));
 
     FONT.write($('.pitch-title'), 'P');
@@ -288,42 +297,125 @@ $.get('/resources/osd/default.mcm', function (data) {
     for (i = 0; i < 17; i++) {
         $line.append(FONT.draw(SYM.AH_BAR9_0 + 4));
     }
+    xPlane = getXplane();
+
+    xPlane.requestDataRef('sim/time/paused', 10, function (ref, value) {
+        isPaused = value*1;
+        $('.disableIfNotPaused').prop('disabled', ! isPaused);
+        if (! value && needToReloadAircraft) {
+            xPlane.sendCommand('sim/operation/reload_aircraft');
+            needToReloadAircraft = false;
+        }
+    });
+    xPlane.requestDataRef('sim/operation/override/override_planepath[0]', 10, function (ref, value) {
+        if (value) {
+            xPlane.setDataRef('sim/operation/override/override_planepath[0]', 0);
+            needToReloadAircraft = true;
+            console.log('Set override_planepath[0] to 0');
+        }
+    });
+
+
+    $('#send_latlon').on('click', function() {
+        if (!isPaused) {
+            return false;
+        }
+        let value = $('#set_latlon').val().split( /[, ]+/);
+        let altitude = $('#set_altitude').val();
+        xPlane.setDataRef('sim/operation/override/override_planepath[0]', 0);
+        xPlane.sendVEHX(0, value[0], value[1], altitude, 0, 0, 0);
+    });
+    $('.btn_set_mode').on('click', function () {
+        let $this = $(this);
+        let value = $this.data('value')*1;
+        getMspHelper().setSimulatorMode(value);
+    })
 });
 
-
+document.addEventListener('keypress', (event) => {
+    const keyName = event.key;
+    if (keyName === 'p') {
+        xPlane.sendCommand('sim/operation/pause_toggle');
+    }
+});
 
 function onOsdLoad()
 {
-    if (FONT.isLoaded) {
-        let data = getFlightData();
-        FONT.write($('#latitude'), (data.lat / 10000000).toFixed(7));
-        FONT.write($('#longitude'), (data.lon / 10000000).toFixed(7));
+    simData = getFlightData();
 
-        $('#line').css({'transform': 'rotate(' + (data.roll * -1) + 'deg)'});
-        $('#line').css({'top': (100 + (data.pitch * -1)) + 'px'});
-        FONT.write($('#pitch'), String((data.pitch * -1).toFixed(2)));
-        FONT.write($('#roll'), String((data.roll * -1).toFixed(2)));
-        FONT.write($('#heading'), String(data.course.toFixed()).padStart(3, '0'));
-        FONT.write($('#alt'), String((data.alt / 100).toFixed()));
-        FONT.write($('#speed'), String((data.speed * 3.6 / 100).toFixed(1)));
-        FONT.write($('#baro'), String((data.baro * 3386.39 / 100).toFixed()));
+    if (FONT.isLoaded) {
+        FONT.write($('#latitude'), (simData.lat / 10000000).toFixed(7));
+        FONT.write($('#longitude'), (simData.lon / 10000000).toFixed(7));
+
+        $('#line').css({'transform': 'rotate(' + (simData.roll * -1) + 'deg)'});
+        $('#line').css({'top': (100 + (simData.pitch * -1)) + 'px'});
+        FONT.write($('#pitch'), String((simData.pitch * -1).toFixed(2)));
+        FONT.write($('#roll'), String((simData.roll * -1).toFixed(2)));
+        FONT.write($('#heading'), String(simData.course.toFixed()).padStart(3, '0'));
+        FONT.write($('#alt'), String((simData.alt / 100).toFixed()));
+        FONT.write($('#agl'), String(simData.agl));
+        FONT.write($('#speed'), String((simData.speed * 3.6 / 100).toFixed(1)));
+        FONT.write($('#baro'), String((simData.baro * 3386.39 / 100).toFixed()));
+        FONT.write($('#satelites'), String(simData.numSat));
 
         let telemetry = getTelemetryData();
         FONT.write($('.flight-mode'), String(telemetry.flightModeText));
+        FONT.write($('.error-messages'), String(telemetry.message));
         FONT.write($('.arming-status'), String(telemetry.armed? 'ARMED': 'DISARMED'));
         FONT.write($('#throttlePercent'), String(telemetry.throttlePercent));
         FONT.write($('#dist-home'), String((telemetry.distanceToHome).toFixed()));
         FONT.write($('#altHome'), String((telemetry.homeAltitude).toFixed()));
-        $('.dir-to-home').css({'transform': 'rotate(' + (telemetry.directionToHome - data.course).toFixed() + 'deg)'});
+        FONT.write($('#vario'), String((telemetry.variometer).toFixed(2)));
+        $('.dir-to-home').css({'transform': 'rotate(' + (telemetry.directionToHome - simData.course).toFixed() + 'deg)'});
         $('.loading').hide();
+
+        if (! isPaused) {
+            // inputs
+            $('#set_latlon').val((simData.lat / 10000000).toFixed(7) + ', ' + (simData.lon / 10000000).toFixed(7));
+            $('#set_altitude').val((simData.alt / 100).toFixed());
+            $('.msg-set-gps').show();
+        } else {
+            $('.msg-set-gps').hide();
+        }
+        if (isXplaneConnected()) {
+            $('.msg-connect-inav').hide();
+        } else {
+            $('.msg-connect-inav').show();
+        }
     }
     setTimeout(function() {
         onOsdLoad();
     }, 100);
 }
 
-window.onload = onOsdLoad;
+window.onload = function () {
+    $('.toggle').each(function(index, elem) {
+        var switchery = new Switchery(elem, {
+            color: '#37a8db',
+            secondaryColor: '#c4c4c4'
+        });
+        $(elem).on("change", function (evt) {
+            switchery.setPosition();
+        });
+        $(elem).removeClass('toggle');
+    });
+    $("#xplane-gps-enabled").on('change', function() {
+        if ($(this).is(':checked')) {
+            simData.fix = 2;
+            simData.numSat = 10;
+        } else {
+            simData.fix = 0;
+            simData.numSat = 0;
+        }
+    });
+
+    onOsdLoad();
+    if (simData.fix) {
+        $('#xplane-gps-enabled').click();
+    }
+}
 
 setInterval(function() {
     checkTelemetry();
 }, 100);
+

@@ -627,7 +627,7 @@ var mspHelper = (function (gui) {
                                 SOARING      : (1 << 16),
                             }
                             TELEMETRY.flightModeText = '';
-                            for (let char in flightModeFlags) {
+                            for (var char in flightModeFlags) {
                                 if (TELEMETRY.flightMode & (flightModeFlags[char])) {
                                     if (TELEMETRY.flightModeText) {
                                         TELEMETRY.flightModeText+= ' + ';
@@ -637,20 +637,29 @@ var mspHelper = (function (gui) {
                             }
                             break;
                         case 1: // message
+                            TELEMETRY.message = '';
+                            var char;
+                            while ((char = data.readU8()) !== null && char !== 0) {
+                                TELEMETRY.message += String.fromCharCode(char);
+                            }
+                            TELEMETRY.message = TELEMETRY.message.trim();
                             break;
                         case 2: // home position
                             TELEMETRY.distanceToHome = data.readU16();
                             TELEMETRY.directionToHome = data.readU16();
                             TELEMETRY.homeAltitude = data.read32() / 100;
                             break;
-                        case 3: // home position
+                        case 3: // throttle percent
                             TELEMETRY.throttlePercent = data.readU8();
+                            break;
+                        case 4: // throttle percent
+                            TELEMETRY.variometer = (data.readU16() - 32000) / 100;
                             break;
                         default:
                             break;
                     }
                 }
-                // console.log(TELEMETRY.directionToHome)
+                // console.log(TELEMETRY);
                 break;
             case MSPCodes.MSP_SIMULATOR:
                 // SIM_INPUTS.motor = data.getUint16(0, true);
@@ -710,7 +719,7 @@ var mspHelper = (function (gui) {
                         // End of message
                         if (debugMsgBuffer.length > 1) {
                             console.log('[DEBUG] ' + debugMsgBuffer);
-                            DEBUG_TRACE = (DEBUG_TRACE || '') + debugMsgBuffer;
+                            DEBUG_TRACE = debugMsgBuffer;
                         }
                         debugMsgBuffer = '';
                         continue;
@@ -1451,6 +1460,7 @@ var mspHelper = (function (gui) {
                 break;
             case MSPCodes.MSP2_INAV_SET_MIXER:
                 console.log('Mixer config saved');
+                break;
             case MSPCodes.MSP2_INAV_OSD_LAYOUTS:
                 break;
             case MSPCodes.MSP2_INAV_OSD_SET_LAYOUT_ITEM:

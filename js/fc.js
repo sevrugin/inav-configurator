@@ -555,11 +555,13 @@ var FC = {
         TELEMETRY = {
             armed: false,
             flightMode: null,
+            message: null,
             flightModeText: '',
             distanceToHome: 0,
             directionToHome: 0,
             homeAltitude: 0,
             throttlePercent: 0,
+            variometer: 0,
         }
     },
     getOutputUsages: function() {
