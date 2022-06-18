@@ -595,7 +595,7 @@ $(document).ready(function () {
         if (state) {
             mspHelper.setSimulatorMode(1);
             xPlane.initConnection();
-            // simData.fix = 2;
+            simData.fix = 2;
             // simData.numSat = 10;
 
             // GPS
@@ -619,33 +619,33 @@ $(document).ready(function () {
                 simData.agl = value.toFixed();// debug data
             });
             // position
-            xPlane.requestDataRef('sim/flightmodel/position/phi', 10, function (ref, value) {
-                simData.roll = value; isSimDataUpdated = true;
+            xPlane.requestDataRef('sim/flightmodel/position/true_phi', 10, function (ref, value) {
+                simData.roll = value * 1; isSimDataUpdated = true;
             });
-            xPlane.requestDataRef('sim/flightmodel/position/theta', 10, function (ref, value) {
+            xPlane.requestDataRef('sim/flightmodel/position/true_theta', 10, function (ref, value) {
                 simData.pitch = value * -1; isSimDataUpdated = true;
             });
-            xPlane.requestDataRef('sim/flightmodel/position/psi', 10, function (ref, value) {
-                simData.yaw = value; simData.course = value; isSimDataUpdated = true;
+            xPlane.requestDataRef('sim/flightmodel/position/mag_psi', 10, function (ref, value) {
+                simData.yaw = value * 1; simData.course = value * 1; isSimDataUpdated = true;
             });
             // Accelerometer
-            xPlane.requestDataRef('sim/flightmodel/forces/g_axil', 10, function (ref, value) {
+            xPlane.requestDataRef('sim/flightmodel/forces/g_axil', 50, function (ref, value) {
                 simData.accel_x = value * -1; isSimDataUpdated = true;
             });
-            xPlane.requestDataRef('sim/flightmodel/forces/g_side', 10, function (ref, value) {
+            xPlane.requestDataRef('sim/flightmodel/forces/g_side', 50, function (ref, value) {
                 simData.accel_y = value * -1; isSimDataUpdated = true;
             });
-            xPlane.requestDataRef('sim/flightmodel/forces/g_nrml', 10, function (ref, value) {
+            xPlane.requestDataRef('sim/flightmodel/forces/g_nrml', 50, function (ref, value) {
                 simData.accel_z = value; isSimDataUpdated = true;
             });
             // Gyro
-            xPlane.requestDataRef('sim/flightmodel/position/P', 10, function (ref, value) {
+            xPlane.requestDataRef('sim/flightmodel/position/P', 50, function (ref, value) {
                 simData.gyro_x = value; isSimDataUpdated = true; // roll
             });
-            xPlane.requestDataRef('sim/flightmodel/position/Q', 10, function (ref, value) {
+            xPlane.requestDataRef('sim/flightmodel/position/Q', 50, function (ref, value) {
                 simData.gyro_y = value * -1; isSimDataUpdated = true; // pitch
             });
-            xPlane.requestDataRef('sim/flightmodel/position/R', 10, function (ref, value) {
+            xPlane.requestDataRef('sim/flightmodel/position/R', 50, function (ref, value) {
                 simData.gyro_z = value * -1; isSimDataUpdated = true; // yaw
             });
             // Barometer

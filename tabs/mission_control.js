@@ -142,13 +142,11 @@ TABS.mission_control.initialize = function (callback) {
         }
 
         function update_gpsTrack() {
-
           let lat = GPS_DATA.lat / 10000000;
           let lon = GPS_DATA.lon / 10000000;
 
           //Update map
           if (GPS_DATA.fix >= 2) {
-
               if (!cursorInitialized) {
                   cursorInitialized = true;
 

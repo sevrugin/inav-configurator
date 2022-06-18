@@ -653,7 +653,7 @@ var mspHelper = (function (gui) {
                             TELEMETRY.throttlePercent = data.readU8();
                             break;
                         case 4: // throttle percent
-                            TELEMETRY.variometer = (data.readU16() - 32000) / 100;
+                            TELEMETRY.variometer = (data.readU32() - 32000) / 100;
                             break;
                         default:
                             break;
@@ -2195,7 +2195,7 @@ var mspHelper = (function (gui) {
         buffer.push32(data.lat);
         buffer.push32(data.lon);
         buffer.push32(data.alt);
-        buffer.push16(data.speed);
+        buffer.push16(data.speed);// m/s
         buffer.push16(data.course);
         // angles
         buffer.push16((data.roll + 180) * 10); //roll
