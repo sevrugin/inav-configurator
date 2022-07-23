@@ -10,37 +10,16 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
         googleAnalytics.sendAppView('Configuration');
     }
 
-    var craftName = null;
-    var loadCraftName = function (callback) {
-        if (!CONFIG.name || CONFIG.name.trim() === '') {
-            mspHelper.getCraftName(function (name) {
-                craftName = name;
-                callback();
-            });
-        } else {
-            craftName = CONFIG.name;
-            callback();
-        }
-    };
-
-    var saveCraftName = function (callback) {
-        mspHelper.setCraftName(craftName, callback);
-    };
-
     var loadChainer = new MSPChainerClass();
 
     var loadChain = [
         mspHelper.loadFeatures,
         mspHelper.loadArmingConfig,
-        mspHelper.load3dConfig,
         mspHelper.loadSensorAlignment,
         mspHelper.loadAdvancedConfig,
-        mspHelper.loadINAVPidConfig,
         mspHelper.loadVTXConfig,
-        mspHelper.loadMixerConfig,
         mspHelper.loadBoardAlignment,
         mspHelper.loadCurrentMeterConfig,
-        loadCraftName,
         mspHelper.loadMiscV2
     ];
 
@@ -51,16 +30,13 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
     var saveChainer = new MSPChainerClass();
 
     var saveChain = [
-        mspHelper.save3dConfig,
         mspHelper.saveSensorAlignment,
         mspHelper.saveAccTrim,
         mspHelper.saveArmingConfig,
         mspHelper.saveAdvancedConfig,
-        mspHelper.saveINAVPidConfig,
         mspHelper.saveVTXConfig,
         mspHelper.saveBoardAlignment,
         mspHelper.saveCurrentMeterConfig,
-        saveCraftName,
         mspHelper.saveMiscV2,
         saveSettings,
         mspHelper.saveToEeprom
@@ -250,8 +226,8 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
 
         // fill battery capacity
         $('#battery_capacity').val(MISC.battery_capacity);
-        $('#battery_capacity_warning').val(MISC.battery_capacity_warning * 100 / MISC.battery_capacity);
-        $('#battery_capacity_critical').val(MISC.battery_capacity_critical * 100 / MISC.battery_capacity);
+        $('#battery_capacity_warning').val(Math.round(MISC.battery_capacity_warning * 100 / MISC.battery_capacity));
+        $('#battery_capacity_critical').val(Math.round(MISC.battery_capacity_critical * 100 / MISC.battery_capacity));
         $('#battery_capacity_unit').val(MISC.battery_capacity_unit);
 
         let $i2cSpeed = $('#i2c_speed'),
@@ -287,19 +263,6 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
 
         $i2cSpeed.change();
 
-        $('#3ddeadbandlow').val(REVERSIBLE_MOTORS.deadband_low);
-        $('#3ddeadbandhigh').val(REVERSIBLE_MOTORS.deadband_high);
-        $('#3dneutral').val(REVERSIBLE_MOTORS.neutral);
-        
-        // Craft name
-        if (craftName != null) {
-            $('.config-personalization').show();
-            $('input[name="craft_name"]').val(craftName);
-        } else {
-            // craft name not supported by the firmware
-            $('.config-personalization').hide();
-        }
-
         $('a.save').click(function () {
             MISC.mag_declination = parseFloat($('#mag_declination').val());
 
@@ -318,13 +281,7 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             MISC.battery_capacity_critical = parseInt($('#battery_capacity_critical').val() * MISC.battery_capacity / 100);
             MISC.battery_capacity_unit = $('#battery_capacity_unit').val();
 
-            REVERSIBLE_MOTORS.deadband_low = parseInt($('#3ddeadbandlow').val());
-            REVERSIBLE_MOTORS.deadband_high = parseInt($('#3ddeadbandhigh').val());
-            REVERSIBLE_MOTORS.neutral = parseInt($('#3dneutral').val());
-
             SENSOR_ALIGNMENT.align_mag = parseInt(orientation_mag_e.val());
-
-            craftName = $('input[name="craft_name"]').val();
 
             googleAnalytics.sendEvent('Setting', 'I2CSpeed', $('#i2c_speed').children("option:selected").text());
 

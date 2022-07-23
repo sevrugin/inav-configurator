@@ -3,6 +3,24 @@
 var Settings = (function () {
     let self = {};
 
+    self.fillSelectOption = function(s, ii) {
+        var name = (s.setting.table ? s.setting.table.values[ii] : null);
+        if (name) {
+            var localizedName = chrome.i18n.getMessage(name);
+            if (localizedName) {
+                name = localizedName;
+            }
+        } else {
+            // Fallback to the number itself
+            name = ii;
+        }
+        var option = $('<option/>').attr('value', ii).text(name);
+        if (ii == s.value) {
+            option.prop('selected', true);
+        }
+        return option;
+    }
+
     self.configureInputs = function() {
         var inputs = [];
         $('[data-setting!=""][data-setting]').each(function() {
@@ -45,26 +63,111 @@ var Settings = (function () {
                         input.prop('checked', s.value > 0);
                     } else {
                         input.empty();
-                        for (var ii = s.setting.min; ii <= s.setting.max; ii++) {
-                            var name = (s.setting.table ? s.setting.table.values[ii] : null);
-                            if (name) {
-                                var localizedName = chrome.i18n.getMessage(name);
-                                if (localizedName) {
-                                    name = localizedName;
-                                }
-                            } else {
-                                // Fallback to the number itself
-                                name = ii;
+                        let option = null;
+                        if (input.data('setting-invert-select') === true) {
+                            for (var ii = s.setting.max; ii >= s.setting.min; ii--) {
+                                option = null;
+                                option = self.fillSelectOption(s, ii);
+
+                                option.appendTo(input);
                             }
-                            var option = $('<option/>').attr('value', ii).text(name);
-                            if (ii == s.value) {
-                                option.prop('selected', true);
+                        } else {
+                            for (var ii = s.setting.min; ii <= s.setting.max; ii++) {
+                                option = null;
+                                option = self.fillSelectOption(s, ii);
+
+                                option.appendTo(input);
                             }
-                            option.appendTo(input);
                         }
                     }
                 } else if (s.setting.type == 'string') {
                     input.val(s.value);
+                    input.attr('maxlength', s.setting.max);
+                } else if (input.data('presentation') == 'range') {
+                    
+                    let scaledMax;
+                    let scaledMin;
+                    let scalingThreshold;
+
+                    if (input.data('normal-max')) {
+                        scaledMax = s.setting.max * 2;
+                        scalingThreshold = Math.round(scaledMax * 0.8);
+                        scaledMin = s.setting.min *2;
+                    } else {
+                        scaledMax = s.setting.max;
+                        scaledMin = s.setting.min;
+                        scalingThreshold = scaledMax;
+                    }
+
+                    
+                    let $range = $('<input type="range" min="' + scaledMin + '" max="' + scaledMax + '" value="' + s.value + '"/>');
+                    if (input.data('step')) {
+                        $range.attr('step', input.data('step'));
+                    }
+                    $range.css({
+                        'display': 'block',
+                        'flex-grow': 100,
+                        'margin-left': '1em',
+                        'margin-right': '1em',
+                    });
+                    
+                    input.attr('min', s.setting.min);
+                    input.attr('max', s.setting.max);
+                    input.val(parseInt(s.value));
+                    input.css({
+                        'width': 'auto',
+                        'min-width': '75px',
+                    });
+                    
+                    input.parent().css({
+                        'display': 'flex',
+                        'width': '100%'
+                    });
+                    $range.insertAfter(input);
+
+                    input.parent().find('.helpicon').css({
+                        'top': '5px',
+                        'left': '-10px'
+                    });
+
+                    /*
+                     * Update slider to input
+                     */
+                    $range.on('input', function() {
+                        let val = $(this).val();
+                        let normalMax = parseInt(input.data('normal-max'));
+
+                        if (normalMax) {
+                            if (val <= scalingThreshold) {
+                                val = scaleRangeInt(val, scaledMin, scalingThreshold, s.setting.min, normalMax);
+                            } else {
+                                val = scaleRangeInt(val, scalingThreshold + 1, scaledMax, normalMax + 1, s.setting.max);
+                            }
+                        }
+
+                        input.val(val);
+                    });
+
+                    input.on('change', function() {
+
+                        let val = $(this).val();
+                        let newVal;
+                        let normalMax = parseInt(input.data('normal-max'));
+                        if (normalMax) {
+                            if (val <= normalMax) {
+                                newVal = scaleRangeInt(val, s.setting.min, normalMax, scaledMin, scalingThreshold);
+                            } else {
+                                newVal = scaleRangeInt(val, normalMax + 1, s.setting.max, scalingThreshold + 1, scaledMax);
+                            }
+                        } else {
+                            newVal = val;
+                        }
+
+                        $range.val(newVal);
+                    });
+
+                    input.trigger('change');
+
                 } else if (s.setting.type == 'float') {
                     input.attr('type', 'number');
 
@@ -79,6 +182,7 @@ var Settings = (function () {
                     input.attr('min', s.setting.min);
                     input.attr('max', s.setting.max);
                     input.val(s.value.toFixed(2));
+
                 } else {
                     var multiplier = parseFloat(input.data('setting-multiplier') || 1);
 
@@ -146,15 +250,16 @@ var Settings = (function () {
 
         const oldValue = element.val();
 
-        //display names for the units
-        const unitDisplayDames = {
+        // Display names for the units
+        const unitDisplayNames = {
             // Misc
-            'us' : "uS",
             'cw' : 'cW',
             'percent' : '%',
             'cmss' : 'cm/s/s',
             // Time
+            'us' : "uS",
             'msec' : 'ms',
+            'msec-nc' : 'ms', // Milliseconds, but not converted.
             'dsec' : 'ds',
             'sec' : 's',
             // Angles
@@ -187,6 +292,47 @@ var Settings = (function () {
             'nm' : 'NM'
         }
 
+        // Hover full descriptions for the units
+        const unitExpandedNames = {
+            // Misc
+            'cw' : 'CentiWatts',
+            'percent' : 'Percent',
+            'cmss' : 'Centimetres per second, per second',
+            // Time
+            'us' : "Microseconds",
+            'msec' : 'Milliseconds',
+            'msec-nc' : 'Milliseconds',
+            'dsec' : 'Deciseconds',
+            'sec' : 'Seconds',
+            // Angles
+            'deg' : 'Degrees',
+            'decideg' : 'DeciDegrees',
+            'decideg-lrg' : 'DeciDegrees',
+            // Rotational speed
+            'degps' : 'Degrees per second',
+            'decadegps' : 'DecaDegrees per second',
+            // Temperature
+            'decidegc' : 'DeciDegrees Celsius',
+            'degc' : 'Degrees Celsius',
+            'degf' : 'Degrees Fahrenheit',
+            // Speed
+            'cms' : 'Centimetres per second',
+            'v-cms' : 'Centimetres per second',
+            'ms' : 'Metres per second',
+            'kmh' : 'Kilometres per hour',
+            'mph' : 'Miles per hour',
+            'hftmin' : 'Hundred feet per minute',
+            'fts' : 'Feet per second',
+            'kt' : 'Knots',
+            // Distance
+            'cm' : 'Centimetres',
+            'm' : 'Metres',
+            'km' : 'Kilometres',
+            'm-lrg' : 'Metres',
+            'ft' : 'Feet',
+            'mi' : 'Miles',
+            'nm' : 'Nautical Miles'
+        }
 
         // Ensure we can do conversions
         if (!inputUnit || !oldValue || !element) {
@@ -221,6 +367,9 @@ var Settings = (function () {
                 'ms' : 100,
                 'hftmin' : 50.8,
                 'fts' : 30.48
+            },
+            'msec-nc' : {
+                'msec-nc' : 1
             },
             'msec' : {
                 'sec' : 1000
@@ -372,7 +521,7 @@ var Settings = (function () {
         element.data('setting-multiplier', multiplier);
 
         // Now wrap the input in a display that shows the unit
-        element.wrap(`<div data-unit="${unitDisplayDames[unitName]}" class="unit_wrapper unit"></div>`);
+        element.wrap(`<div data-unit="${unitDisplayNames[unitName]}" title="${unitExpandedNames[unitName]}" class="unit_wrapper unit"></div>`);
 
         function toFahrenheit(decidegC) {
             return (decidegC / 10) * 1.8 + 32;
@@ -421,11 +570,37 @@ var Settings = (function () {
     self.processHtml = function(callback) {
         return function() {
             self.configureInputs().then(callback);
+            self.linkHelpIcons();
         };
     };
 
     self.getInputValue = function(settingName) {
         return $('[data-setting="' + settingName + '"]').val();
+    };
+
+    self.linkHelpIcons = function() {
+        var helpIcons = [];
+        $('.helpicon').each(function(){
+            helpIcons.push($(this));
+        });
+
+        return Promise.mapSeries(helpIcons, function(helpIcon, ii) {
+            let forAtt = helpIcon.attr('for');
+
+            if (typeof forAtt !== "undefined" && forAtt !== "") {
+                let dataSettingName = $('#' + forAtt).data("setting");
+
+                if (typeof dataSettingName === "undefined" || dataSettingName === "") {
+                    dataSettingName = $('#' + forAtt).data("setting-placeholder");
+                }
+
+                if (typeof dataSettingName !== "undefined" && dataSettingName !== "") {
+                    helpIcon.wrap('<a class="helpiconLink" href="https://github.com/iNavFlight/inav/blob/master/docs/Settings.md#' + dataSettingName + '" target="_blank"></a>');
+                }
+            }
+
+            return;
+        });
     };
 
     return self;

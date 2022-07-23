@@ -101,6 +101,7 @@ SYM.WH_NM = 0x70;
 SYM.VTX_POWER = 0x27;
 SYM.MAX = 0xCE;
 SYM.PROFILE = 0xCF;
+SYM.SWITCH_INDICATOR_HIGH = 0xD2;
 
 SYM.AH_AIRCRAFT0 = 0x1A2;
 SYM.AH_AIRCRAFT1 = 0x1A3;
@@ -109,6 +110,8 @@ SYM.AH_AIRCRAFT3 = 0x1A5;
 SYM.AH_AIRCRAFT4 = 0x1A6;
 
 SYM.AH_CROSSHAIRS = new Array(0x166, 0x1A4, new Array(0x190, 0x191, 0x192), new Array(0x193, 0x194, 0x195), new Array(0x196, 0x197, 0x198), new Array(0x199, 0x19A, 0x19B), new Array (0x19C, 0x19D, 0x19E), new Array (0x19F, 0x1A0, 0x1A1));
+
+var video_type = null;
 
 var FONT = FONT || {};
 
@@ -402,6 +405,13 @@ function osdMainBatteryPreview() {
     return FONT.symbol(SYM.BATT) + FONT.embed_dot(s);
 }
 
+function osdmAhdrawnPreview() {
+    let precision = Settings.getInputValue('osd_mah_used_precision');
+    let preview = "1215075".substring(0, precision);
+
+    return preview + FONT.symbol(SYM.MAH);
+}
+
 function osdCoordinatePreview(symbol, coordinate) {
     return function() {
         var digits = Settings.getInputValue('osd_coordinate_digits');
@@ -491,6 +501,7 @@ OSD.DjiElements =  {
         "PowerLimits"
     ],
     supportedSettings: [
+        "craft_name",
         "units"
     ],
     supportedAlarms: [
@@ -1216,7 +1227,7 @@ OSD.constants = {
                     name: 'MAH_DRAWN',
                     id: 12,
                     preview: function() {
-                        return '1034' + FONT.symbol(SYM.MAH); // 4 chars
+                        return osdmAhdrawnPreview();
                     }
                 },
                 {
@@ -1615,6 +1626,35 @@ OSD.constants = {
             ]
         },
         {
+            name: 'osdGroupSwitchIndicators',
+            items: [
+                {
+                    name: 'SWITCH_INDICATOR_0',
+                    id: 130,
+                    positionable: true,
+                    preview: 'SWI1' + FONT.symbol(SYM.SWITCH_INDICATOR_HIGH)
+                },
+                {
+                    name: 'SWITCH_INDICATOR_1',
+                    id: 131,
+                    positionable: true,
+                    preview: 'SWI2' + FONT.symbol(SYM.SWITCH_INDICATOR_HIGH)
+                },
+                {
+                    name: 'SWITCH_INDICATOR_2',
+                    id: 132,
+                    positionable: true,
+                    preview: 'SWI3' + FONT.symbol(SYM.SWITCH_INDICATOR_HIGH)
+                },
+                {
+                    name: 'SWITCH_INDICATOR_3',
+                    id: 133,
+                    positionable: true,
+                    preview: 'SWI4' + FONT.symbol(SYM.SWITCH_INDICATOR_HIGH)
+                }
+            ]
+        },
+        {
             name: 'osdGroupGVars',
             items: [
                 {
@@ -1788,6 +1828,16 @@ OSD.constants = {
                     id: 118,
                     preview: 'CTL S 3'
                 },
+                {
+                    name: 'TPA_TIME_CONSTANT',
+                    id: 134,
+                    preview: 'TPA TC   10'
+                },
+                {
+                    name: 'FW_LEVEL_TRIM',
+                    id: 135,
+                    preview: 'LEVEL  ' + FONT.embed_dot('5.4')
+                },
             ]
         },
         {
@@ -1923,7 +1973,7 @@ OSD.updateSelectedLayout = function(new_layout) {
 };
 
 OSD.updateDisplaySize = function () {
-    var video_type = OSD.constants.VIDEO_TYPES[OSD.data.preferences.video_system];
+    video_type = OSD.constants.VIDEO_TYPES[OSD.data.preferences.video_system];
     if (video_type == 'AUTO') {
         video_type = 'PAL';
     }
@@ -2449,6 +2499,10 @@ OSD.GUI.updateFields = function() {
     // TODO: If we add more switches somewhere else, this
     // needs to be called after all of them have been set up
     GUI.switchery();
+
+     // Update the OSD preview
+     refreshOSDSwitchIndicators();
+     updateCraftName();
 };
 
 OSD.GUI.removeBottomLines = function(){
@@ -2467,6 +2521,8 @@ OSD.GUI.removeBottomLines = function(){
         }
     });
 };
+
+
 
 OSD.GUI.updateDjiMessageElements = function(on) {
     $('.display-field').each(function(index, element) {
@@ -2620,10 +2676,12 @@ OSD.GUI.updatePreviews = function() {
         centerPosition += OSD.data.display_size.x / 2;
     }
 
+    let hudCenterPosition = centerPosition - (OSD.constants.VIDEO_COLS[video_type] * $('#osd_horizon_offset').val());
+
     // artificial horizon
     if ($('input[name="ARTIFICIAL_HORIZON"]').prop('checked')) {
         for (i = 0; i < 9; i++) {
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition - 4 + i, SYM.AH_BAR9_0 + 4);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition - 4 + i, SYM.AH_BAR9_0 + 4);
         }
     }
 
@@ -2632,21 +2690,21 @@ OSD.GUI.updatePreviews = function() {
         crsHNumber = Settings.getInputValue('osd_crosshairs_style');
        if (crsHNumber == 1) {
             // AIRCRAFT style
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition - 2, SYM.AH_AIRCRAFT0);
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition - 1, SYM.AH_AIRCRAFT1);
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition, SYM.AH_AIRCRAFT2);
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition + 1, SYM.AH_AIRCRAFT3);
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition + 2, SYM.AH_AIRCRAFT4);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition - 2, SYM.AH_AIRCRAFT0);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition - 1, SYM.AH_AIRCRAFT1);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition, SYM.AH_AIRCRAFT2);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition + 1, SYM.AH_AIRCRAFT3);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition + 2, SYM.AH_AIRCRAFT4);
         } else if ((crsHNumber > 1) && (crsHNumber < 8)) {
             // TYPES 3 to 8 (zero indexed)
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition - 1, SYM.AH_CROSSHAIRS[crsHNumber][0]);
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition, SYM.AH_CROSSHAIRS[crsHNumber][1]);
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition + 1, SYM.AH_CROSSHAIRS[crsHNumber][2]);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition - 1, SYM.AH_CROSSHAIRS[crsHNumber][0]);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition, SYM.AH_CROSSHAIRS[crsHNumber][1]);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition + 1, SYM.AH_CROSSHAIRS[crsHNumber][2]);
         } else {
             // DEFAULT or unknown style
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition - 1, SYM.AH_CENTER_LINE);
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition, SYM.AH_CROSSHAIRS[crsHNumber]);
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition + 1, SYM.AH_CENTER_LINE_RIGHT);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition - 1, SYM.AH_CENTER_LINE);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition, SYM.AH_CROSSHAIRS[crsHNumber]);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition + 1, SYM.AH_CENTER_LINE_RIGHT);
         }
     }
 
@@ -2655,12 +2713,12 @@ OSD.GUI.updatePreviews = function() {
         var hudwidth = OSD.constants.AHISIDEBARWIDTHPOSITION;
         var hudheight = OSD.constants.AHISIDEBARHEIGHTPOSITION;
         for (i = -hudheight; i <= hudheight; i++) {
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition - hudwidth + (i * FONT.constants.SIZES.LINE), SYM.AH_DECORATION);
-            OSD.GUI.checkAndProcessSymbolPosition(centerPosition + hudwidth + (i * FONT.constants.SIZES.LINE), SYM.AH_DECORATION);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition - hudwidth + (i * FONT.constants.SIZES.LINE), SYM.AH_DECORATION);
+            OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition + hudwidth + (i * FONT.constants.SIZES.LINE), SYM.AH_DECORATION);
         }
         // AH level indicators
-        OSD.GUI.checkAndProcessSymbolPosition(centerPosition - hudwidth + 1, SYM.AH_LEFT);
-        OSD.GUI.checkAndProcessSymbolPosition(centerPosition + hudwidth - 1, SYM.AH_RIGHT);
+        OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition - hudwidth + 1, SYM.AH_LEFT);
+        OSD.GUI.checkAndProcessSymbolPosition(hudCenterPosition + hudwidth - 1, SYM.AH_RIGHT);
     }
 
     OSD.GUI.updateMapPreview(centerPosition, 'MAP_NORTH', 'N', SYM.HOME);
@@ -2733,6 +2791,7 @@ OSD.GUI.updateAll = function() {
         layouts.on('change', function() {
             OSD.updateSelectedLayout(parseInt(layouts.val()));
             OSD.GUI.updateFields();
+            OSD.GUI.updateDjiView($('#djiUnsupportedElements').find('input').is(':checked'));
             OSD.GUI.updatePreviews();
         });
     } else {
@@ -2783,6 +2842,8 @@ TABS.osd.initialize = function (callback) {
         OSD.GUI.jbox = new jBox('Modal', {
             width: 708,
             height: 240,
+            position: {y:'bottom'},
+            offset: {y:-50},
             closeButton: 'title',
             animation: false,
             attach: $('#fontmanager'),
@@ -2801,6 +2862,47 @@ TABS.osd.initialize = function (callback) {
                     $(self).html(oldText);
                 }, 2000);
             });
+        });
+
+
+        // Setup switch indicators
+        $(".osdSwitchInd_channel option").each(function() {
+            $(this).text("Ch " + $(this).text());
+        });
+
+        // Function when text for switch indicators change
+        $('.osdSwitchIndName').on('keyup', function() {
+            // Make sure that the switch hint only contains A to Z
+            let testExp = new RegExp('^[A-Za-z0-9]');
+            let testText = $(this).val();
+            if (testExp.test(testText.slice(-1))) {
+                $(this).val(testText.toUpperCase());
+            } else {
+                $(this).val(testText.slice(0, -1));
+            }
+
+            // Update the OSD preview
+            refreshOSDSwitchIndicators();
+        });
+
+        // Function to update the OSD layout when the switch text alignment changes
+        $("#switchIndicators_alignLeft").on('change', function() {
+            refreshOSDSwitchIndicators();
+        });
+
+        // Function for when text for craft name changes
+        $('#craft_name').on('keyup', function() {
+            // Make sure that the craft name only contains A to Z, 0-9, spaces, and basic ASCII symbols
+            let testExp = new RegExp('^[A-Za-z0-9 !_,:;=@#\\%\\&\\-\\*\\^\\(\\)\\.\\+\\<\\>\\[\\]]');
+            let testText = $(this).val();
+            if (testExp.test(testText.slice(-1))) {
+                $(this).val(testText.toUpperCase());
+            } else {
+                $(this).val(testText.slice(0, -1));
+            }
+
+            // Update the OSD preview
+            updateCraftName();
         });
 
         // font preview window
@@ -2941,6 +3043,53 @@ TABS.osd.initialize = function (callback) {
         });
     }));
 };
+
+function refreshOSDSwitchIndicators() {
+    let group = OSD.constants.ALL_DISPLAY_GROUPS.filter(function(e) {
+        return e.name == "osdGroupSwitchIndicators";
+      })[0];
+    for (let si = 0; si < group.items.length; si++) {
+        let item = group.items[si];
+        if ($("#osdSwitchInd" + si +"_name").val() != undefined) {
+            let switchIndText = $("#osdSwitchInd" + si +"_name").val();
+            if (switchIndText == "") {
+                item.preview = FONT.symbol(SYM.SWITCH_INDICATOR_HIGH);
+            } else {
+                if ($("#switchIndicators_alignLeft").prop('checked')) {
+                    item.preview = switchIndText + FONT.symbol(SYM.SWITCH_INDICATOR_HIGH);
+                } else {
+                    item.preview = FONT.symbol(SYM.SWITCH_INDICATOR_HIGH) + switchIndText;
+                }
+            }
+        }
+    }
+
+    OSD.GUI.updatePreviews();
+}
+
+function updateCraftName() {
+    let generalGroup = OSD.constants.ALL_DISPLAY_GROUPS.filter(function(e) {
+        return e.name == "osdGroupGeneral";
+      })[0];
+
+
+    if ($('#craft_name').val() != undefined) {
+        for (let si = 0; si < generalGroup.items.length; si++) {
+            if (generalGroup.items[si].name == "CRAFT_NAME") {
+                let craftNameText = $('#craft_name').val();
+                
+                if (craftNameText == "") {
+                    generalGroup.items[si].preview = "CRAFT_NAME";
+                } else {
+                    generalGroup.items[si].preview = craftNameText;
+                }
+                break;
+            }
+        }
+    }
+
+    OSD.GUI.updatePreviews();
+}
 
 TABS.osd.cleanup = function (callback) {
     PortHandler.flush_callbacks();

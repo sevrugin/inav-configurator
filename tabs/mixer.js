@@ -111,10 +111,10 @@ TABS.mixer.initialize = function (callback, scrollPosition) {
                 let outputPad = 1;
                 let outputArea = null;
                 let inputBoxes = null;
-                let surfaceSet = {
-                    aileron: false,
-                    elevator: false,
-                    rudder: false,
+                let surfaces = {
+                    aileronSet: helper.mixer.countSurfaceType(currentMixerPreset, INPUT_STABILIZED_ROLL),
+                    elevatorSet: helper.mixer.countSurfaceType(currentMixerPreset, INPUT_STABILIZED_PITCH),
+                    rudderSet: helper.mixer.countSurfaceType(currentMixerPreset, INPUT_STABILIZED_YAW),
                 };
                 let motors = [];
                 let servoRules = SERVO_RULES;
@@ -130,8 +130,10 @@ TABS.mixer.initialize = function (callback, scrollPosition) {
 
                             switch (parseInt(servo.getInput())) {
                                 case INPUT_STABILIZED_PITCH:
+                                case STABILIZED_PITCH_POSITIVE:
+                                case STABILIZED_PITCH_NEGATIVE:
                                 case INPUT_RC_PITCH:
-                                    outputArea = getOutputImageArea(currentMixerPreset.imageOutputsNumbers, INPUT_STABILIZED_PITCH, surfaceSet.elevator);
+                                    outputArea = getOutputImageArea(currentMixerPreset.imageOutputsNumbers, INPUT_STABILIZED_PITCH, surfaces.elevatorSet);
                                     if (outputArea != null) {
                                         mixerPreview.append('<div id="' + divID + '" class="outputImageNumber">S' + outputPad + '</div>');
 
@@ -148,12 +150,14 @@ TABS.mixer.initialize = function (callback, scrollPosition) {
                                             });
                                         }
 
-                                        surfaceSet.elevator = true;
+                                        surfaces.elevatorSet--;
                                     }
                                     break;
                                 case INPUT_STABILIZED_ROLL:
+                                case STABILIZED_ROLL_POSITIVE:
+                                case STABILIZED_ROLL_NEGATIVE:
                                 case INPUT_RC_ROLL:
-                                    outputArea = getOutputImageArea(currentMixerPreset.imageOutputsNumbers, INPUT_STABILIZED_ROLL, surfaceSet.aileron);
+                                    outputArea = getOutputImageArea(currentMixerPreset.imageOutputsNumbers, INPUT_STABILIZED_ROLL, surfaces.aileronSet);
                                     if (outputArea != null) {
                                         mixerPreview.append('<div id="' + divID + '" class="outputImageNumber">S' + outputPad + '</div>');
 
@@ -170,12 +174,14 @@ TABS.mixer.initialize = function (callback, scrollPosition) {
                                             });
                                         }
 
-                                        surfaceSet.aileron = true;
+                                        surfaces.aileronSet--;
                                     }
                                     break;
                                 case INPUT_STABILIZED_YAW:
+                                case STABILIZED_YAW_POSITIVE:
+                                case STABILIZED_YAW_NEGATIVE:
                                 case INPUT_RC_YAW:
-                                    outputArea = getOutputImageArea(currentMixerPreset.imageOutputsNumbers, INPUT_STABILIZED_YAW, surfaceSet.rudder);
+                                    outputArea = getOutputImageArea(currentMixerPreset.imageOutputsNumbers, INPUT_STABILIZED_YAW, surfaces.rudderSet);
                                     if (outputArea != null) {
                                         mixerPreview.append('<div id="' + divID + '" class="outputImageNumber">S' + outputPad + '</div>');
 
@@ -192,7 +198,7 @@ TABS.mixer.initialize = function (callback, scrollPosition) {
                                             });
                                         }
 
-                                        surfaceSet.rudder = true;
+                                        surfaces.rudderSet--;
                                     }
                                     break;
                             }
@@ -205,7 +211,7 @@ TABS.mixer.initialize = function (callback, scrollPosition) {
                 if (motors.length > 0) {
                     mixerPreview.append('<div id="motorsPreview" class="outputImageNumber isMotor">S' + motors.join('/') + '</div>');
 
-                    outputArea = getOutputImageArea(currentMixerPreset.imageOutputsNumbers, INPUT_STABILIZED_THROTTLE, false);
+                    outputArea = getOutputImageArea(currentMixerPreset.imageOutputsNumbers, INPUT_STABILIZED_THROTTLE, 0);
                     if (outputArea != null) {
                         $("#motorsPreview").css("top", outputArea.top + "px");
                         $("#motorsPreview").css("left", outputArea.left + "px");
@@ -216,24 +222,35 @@ TABS.mixer.initialize = function (callback, scrollPosition) {
         }
     }
 
-    function getOutputImageArea(outputImageAreas, input, secondSurface) {
+    var lastRoll = -1;
+    var lastPitch = -1;
+    var lastYaw = -1;
+
+    function getOutputImageArea(outputImageAreas, input, surfacesSet) {
         let returnArea = null;
-        let firstAileronFound = false;
-        let firstRuddervatorFound = false;
         
         for (let area of outputImageAreas) {
             if (area.input == input) {
                 if ( input === INPUT_STABILIZED_THROTTLE
-                    || (input === INPUT_STABILIZED_YAW && !secondSurface) 
-                    || ((input === INPUT_STABILIZED_ROLL && !secondSurface) || (input === INPUT_STABILIZED_ROLL && secondSurface && firstAileronFound)) 
-                    || ((input === INPUT_STABILIZED_PITCH && !secondSurface) || (input === INPUT_STABILIZED_PITCH && secondSurface && firstRuddervatorFound)) 
+                    || (surfacesSet > 0 && 
+                            ((input === INPUT_STABILIZED_YAW && surfacesSet !== lastYaw) 
+                            || (input === INPUT_STABILIZED_ROLL && surfacesSet !== lastRoll) 
+                            || (input === INPUT_STABILIZED_PITCH && surfacesSet !== lastPitch))
+                        )
                 ) {
                     returnArea = area;
-                    break;
-                } else if (input === INPUT_STABILIZED_ROLL) {
-                    firstAileronFound = true;
+                }
+
+                if (input === INPUT_STABILIZED_ROLL) {
+                    lastRoll = surfacesSet-1;
                 } else if (input === INPUT_STABILIZED_PITCH) {
-                    firstRuddervatorFound = true;
+                    lastPitch = surfacesSet-1;
+                } else if (input === INPUT_STABILIZED_YAW) {
+                    lastYaw = surfacesSet-1;
+                }
+
+                if (returnArea !== null) {
+                    break;
                 }
             }
         }
@@ -514,6 +531,18 @@ TABS.mixer.initialize = function (callback, scrollPosition) {
             motorWizardModal.close();
         });
 
+        const drawImage = function () {
+            const isReversed = $("#motor_direction_inverted").is(":checked") && (MIXER_CONFIG.platformType == PLATFORM_MULTIROTOR || MIXER_CONFIG.platformType == PLATFORM_TRICOPTER);
+
+            const path = './resources/motor_order/'
+                + currentMixerPreset.image + (isReversed ? "_reverse" : "") + '.svg';
+            $('.mixerPreview img').attr('src', path);
+
+            renderServoOutputImage();
+        };
+
+        $("#motor_direction_inverted").change(drawImage);
+
         $platformSelect.find("*").remove();
 
         for (let i in platforms) {
@@ -554,12 +583,17 @@ TABS.mixer.initialize = function (callback, scrollPosition) {
                 $("#needToUpdateMixerMessage").addClass("is-hidden");
             }
 
+            if (MIXER_CONFIG.platformType == PLATFORM_MULTIROTOR || MIXER_CONFIG.platformType == PLATFORM_TRICOPTER) {
+                $('#motor_direction_inverted').parent().removeClass("is-hidden");
+                $('#platform-type').parent('.select').removeClass('no-bottom-border');
+            } else {
+                $('#motor_direction_inverted').parent().addClass("is-hidden");
+                $('#platform-type').parent('.select').addClass('no-bottom-border');
+            }
+
             updateRefreshButtonStatus();
 
-            $('.mixerPreview img').attr('src', './resources/motor_order/'
-                + currentMixerPreset.image + '.svg');
-            
-            renderServoOutputImage();
+            drawImage();
         });
 
         if (MIXER_CONFIG.appliedMixerPreset > -1) {
