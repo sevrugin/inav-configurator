@@ -29,12 +29,17 @@ SYM.MAH_KM_0 = 0x6B;
 SYM.MAH_KM_1 = 0x6C;
 SYM.MAH_MI_0 = 0x93;
 SYM.MAH_MI_1 = 0x94;
+SYM.AH_V_FT_0 = 0xD6;
+SYM.AH_V_FT_1 = 0xD7;
+SYM.AH_V_M_0 = 0xD8;
+SYM.AH_V_M_1 = 0xD9;
 SYM.WH_KM = 0x6E;
 SYM.WH_MI = 0x6F;
 SYM.GPS_SAT1 = 0x08;
 SYM.GPS_SAT2 = 0x09;
 SYM.GPS_HDP1 = 0x0E;
 SYM.GPS_HDP2 = 0x0F;
+SYM.KM = 0x83;
 SYM.KMH = 0x90;
 SYM.KMH_3D = 0x88;
 SYM.MPH = 0x91;
@@ -102,6 +107,8 @@ SYM.VTX_POWER = 0x27;
 SYM.MAX = 0xCE;
 SYM.PROFILE = 0xCF;
 SYM.SWITCH_INDICATOR_HIGH = 0xD2;
+SYM.GLIDE_MINS = 0xD5;
+SYM.GLIDE_RANGE = 0xD4;
 
 SYM.AH_AIRCRAFT0 = 0x1A2;
 SYM.AH_AIRCRAFT1 = 0x1A3;
@@ -495,6 +502,7 @@ OSD.DjiElements =  {
         "Timers",
         "VTX",
         "CRSF",
+        "SwitchIndicators",
         "GVars",
         "PIDs",
         "PIDOutputs",
@@ -914,6 +922,28 @@ OSD.constants = {
                     preview: FONT.symbol(SYM.GLIDESLOPE) + FONT.embed_dot('12.3'),
                 },
                 {
+                    name: 'GLIDE_TIME',
+                    id: 136,
+                    min_version: '5.0.0',
+                    preview: FONT.symbol(SYM.GLIDE_MINS) + '02:34',
+                },
+                {
+                    name: 'GLIDE_RANGE',
+                    id: 137,
+                    min_version: '5.0.0',
+                    preview: function(osd_data) {
+                        switch (OSD.data.preferences.units) {
+                            case 0: // Imperial
+                            case 3: // UK
+                                return FONT.symbol(SYM.GLIDE_RANGE) + FONT.embed_dot(' 12') + FONT.symbol(SYM.MI);
+                            case 4: // GA
+                                return FONT.symbol(SYM.GLIDE_RANGE) + FONT.embed_dot(' 11') + FONT.symbol(SYM.NM);
+                            default: // Metric & Metric + MPH
+                                return FONT.symbol(SYM.GLIDE_RANGE) + FONT.embed_dot(' 21') + FONT.symbol(SYM.KM);
+                        }
+                    }
+                },
+                {
                     name: 'MISSION INFO',
                     id: 129,
                     min_version: '4.0.0',
@@ -1280,7 +1310,22 @@ OSD.constants = {
                                 return FONT.embed_dot('1.23') + FONT.symbol(SYM.WH_KM);
                         }
                     }
-                }
+                },
+                {
+                    name: 'CLIMB_EFFICIENCY',
+                    id: 138,
+                    min_version: '5.0.0',
+                    preview: function(osd_data) {
+                        switch (OSD.data.preferences.units) {
+                            case 0: // Imperial
+                            case 3: // UK
+                            case 4: // GA
+                                return FONT.embed_dot('0.76') + FONT.symbol(SYM.AH_V_FT_0) + FONT.symbol(SYM.AH_V_FT_1);
+                            default: // Metric & Metric + MPH
+                                return FONT.embed_dot('1.23') + FONT.symbol(SYM.AH_V_M_0) + FONT.symbol(SYM.AH_V_M_1);
+                        }
+                    }
+                },
             ]
         },
         {
@@ -1838,6 +1883,11 @@ OSD.constants = {
                     id: 135,
                     preview: 'LEVEL  ' + FONT.embed_dot('5.4')
                 },
+                {
+                    name: 'MISSION_INDEX',
+                    id: 139,
+                    preview: 'WP NO 7'
+                },
             ]
         },
         {
@@ -2008,7 +2058,7 @@ OSD.updateDisplaySize = function () {
             var item = OSD.msp.helpers.unpack.position(origPos[jj]);
             // leave element alone if outside of screen (enable and disable element to relocate to 0,0)
             if (item.x < OSD.data.display_size.x && item.y < OSD.data.display_size.y) {
-                items[jj] = item; 
+                items[jj] = item;
             }
         }
     }
@@ -2573,6 +2623,8 @@ OSD.GUI.updateDjiView = function(on) {
                 $(element).hide();
             }
         });
+
+        $('.switch-indicator-container').hide();
     } else {
         $(OSD.DjiElements.emptyGroups).each(function(index, groupName) {
             $('#osdGroup' + groupName).show();
@@ -2585,6 +2637,8 @@ OSD.GUI.updateDjiView = function(on) {
         $('.settings-container, .alarms-container').find('.settings').children()
             .show()
             .removeClass('no-bottom');
+
+        $('.switch-indicator-container').show();
     }
     OSD.GUI.updateDjiMessageElements($('#useCraftnameForMessages').is(':checked'));
 };
@@ -2918,7 +2972,7 @@ TABS.osd.initialize = function (callback) {
             }
             $fontPicker.removeClass('active');
             $(this).addClass('active');
-            $.get('/resources/osd/' + $(this).data('font-file') + '.mcm', function (data) {
+            $.get('/resources/osd/analogue/' + $(this).data('font-file') + '.mcm', function (data) {
                 FONT.parseMCMFontFile(data);
                 FONT.preview($preview);
                 OSD.GUI.update();
@@ -3077,7 +3131,7 @@ function updateCraftName() {
         for (let si = 0; si < generalGroup.items.length; si++) {
             if (generalGroup.items[si].name == "CRAFT_NAME") {
                 let craftNameText = $('#craft_name').val();
-                
+
                 if (craftNameText == "") {
                     generalGroup.items[si].preview = "CRAFT_NAME";
                 } else {
