@@ -211,7 +211,7 @@ input[type="number"]::-webkit-inner-spin-button {
     position: relative;
     overflow: hidden;
     height: 20px;
-    width: 140px !important;
+    width: 180px !important;
     margin-bottom: 7px;
     border: 1px solid;
     border-radius: 3px;
@@ -235,7 +235,7 @@ input[type="number"]::-webkit-inner-spin-button {
 #port-override {
     background-color: rgba(0, 0, 0, 0.1);
     color: #888888;
-    width: 90px;
+    width: 120px;
     margin-left: 2px;
     margin-top: 0;
     padding: 1px;
@@ -2010,6 +2010,10 @@ select {
     padding: 1px;
 }
 
+.lc_disabled {
+    color: #aaa;
+}
+
 .ic_osd {
     background-image: url("../images/icons/icon_osd.svg");
     background-position-y: 4px;
@@ -2274,5 +2278,5 @@ ol li {
 }
 
 .controlProfileHighlightActive {
-    background-color: #d5ebfe;
+    background-color: #d5ebfe !important ;
 }

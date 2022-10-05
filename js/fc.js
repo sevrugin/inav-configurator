@@ -596,10 +596,7 @@ var FC = {
         return [
             'NMEA',
             'UBLOX',
-            'I2C-NAV',
-            'DJI NAZA',
             'UBLOX7',
-            'MTK',
             'MSP'
         ];
     },
@@ -1150,6 +1147,18 @@ var FC = {
                 hasOperand: [true, true],
                 output: "raw"
             },
+            45: {
+                name: "Flight Axis Angle Override",
+                operandType: "Set Flight Parameter",
+                hasOperand: [true, true],
+                output: "boolean"
+            },
+            46: {
+                name: "Flight Axis Rate Override",
+                operandType: "Set Flight Parameter",
+                hasOperand: [true, true],
+                output: "boolean"
+            },
         }
     },
     getOperandTypes: function () {
@@ -1211,6 +1220,9 @@ var FC = {
                     35: "Loiter Radius [cm]",
                     36: "Active Profile",
                     37: "Battery cells",
+                    38: "AGL status [0/1]",
+                    39: "AGL [cm]",
+                    40: "Rangefinder [cm]",
                 }
             },
             3: {
@@ -1234,7 +1246,7 @@ var FC = {
             4: {
                 name: "Logic Condition",
                 type: "range",
-                range: [0, 31],
+                range: [0, (LOGIC_CONDITIONS.getMaxLogicConditionCount()-1)],
                 default: 0
             },
             5: {

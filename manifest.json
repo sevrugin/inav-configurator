@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "minimum_chrome_version": "38",
-    "version": "5.0.0",
+    "version": "6.0.0",
     "author": "Several",
     "name": "INAV - Configurator",
     "short_name": "INAV",
@@ -21,7 +21,14 @@
     "sandbox": {
     "pages": ["tabs/map.html"]
     },
-         
+    
+    "sockets": {
+        "udp": {
+            "send": ["*"],
+            "bind": ["*"]
+        }
+    },
+
     "permissions": [
         "https://www.google-analytics.com/",
         "https://maps.googleapis.com/*",    
@@ -31,6 +38,8 @@
         "https://dev.virtualearth.net/",
         "serial",
         "usb",
+        "bluetooth",
+        "sockets",
         "storage",
         "fileSystem",
         "fileSystem.write",

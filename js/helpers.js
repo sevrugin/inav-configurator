@@ -42,8 +42,9 @@ function generateFilename(prefix, suffix) {
 
     if (CONFIG) {
         if (CONFIG.flightControllerIdentifier) {
-            filename = CONFIG.flightControllerIdentifier + '_' + filename;
+            filename = CONFIG.flightControllerIdentifier + '_' + CONFIG.flightControllerVersion + "_" + filename;
         }
+         
         if (CONFIG.name && CONFIG.name.trim() !== '') {
             filename = filename + '_' + CONFIG.name.trim().replace(' ', '_');
         }
@@ -57,4 +58,10 @@ function generateFilename(prefix, suffix) {
         + zeroPad(date.getSeconds(), 2);
 
     return filename + '.' + suffix;
+}
+
+function scaleRangeInt(x, srcMin, srcMax, destMin, destMax) {
+    let a = (destMax - destMin) * (x - srcMin);
+    let b = srcMax - srcMin;
+    return Math.round((a / b) + destMin);
 }

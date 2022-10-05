@@ -44,7 +44,7 @@ var mspHelper = (function (gui) {
         'DJI_FPV': 21,
         'SMARTPORT_MASTER': 23,
         'IMU2': 24,
-        'HDZERO_VTX': 25,
+        'MSP_DISPLAYPORT': 25,
     };
 
     // Required for MSP_DEBUGMSG because console.log() doesn't allow omitting
@@ -477,8 +477,20 @@ var mspHelper = (function (gui) {
                             data.getInt8(i + 13)
                         ));
                     }
-                }
-
+                }   
+                break;
+            
+            case MSPCodes.MSP2_INAV_LOGIC_CONDITIONS_SINGLE:
+                LOGIC_CONDITIONS.put(new LogicCondition(
+                    data.getInt8(0),
+                    data.getInt8(1),
+                    data.getUint8(2),
+                    data.getUint8(3),
+                    data.getInt32(4, true),
+                    data.getUint8(8),
+                    data.getInt32(9, true),
+                    data.getInt8(13)
+                ));
                 break;
 
             case MSPCodes.MSP2_INAV_LOGIC_CONDITIONS_STATUS:
@@ -765,6 +777,18 @@ var mspHelper = (function (gui) {
                 CONFIG.boardIdentifier = identifier;
                 CONFIG.boardVersion = data.getUint16(offset, 1);
                 offset += 2;
+                if (semver.gt(CONFIG.flightControllerVersion, "4.1.0")) {
+                    CONFIG.osdUsed = data.getUint8(offset++);
+                    CONFIG.commCompatability = data.getUint8(offset++);
+                    let targetNameLen = data.getUint8(offset++);
+                    let targetName = "";
+                    targetNameLen += offset;
+                    for (offset = offset; offset < targetNameLen; offset++) {
+                        targetName += String.fromCharCode(data.getUint8(offset));
+                    }
+                    CONFIG.target = targetName;
+                }
+                
                 break;
 
             case MSPCodes.MSP_SET_CHANNEL_FORWARDING:
@@ -2258,8 +2282,23 @@ var mspHelper = (function (gui) {
         }
     };
 
-    self.loadLogicConditions = function (callback) {
-        MSP.send_message(MSPCodes.MSP2_INAV_LOGIC_CONDITIONS, false, false, callback);
+    self.loadLogicConditions = function (callback) {   
+        if (semver.gte(CONFIG.flightControllerVersion, "5.0.0")) {        
+            LOGIC_CONDITIONS.flush();
+            let idx = 0;
+            MSP.send_message(MSPCodes.MSP2_INAV_LOGIC_CONDITIONS_SINGLE, [idx], false, nextLogicCondition);
+
+            function nextLogicCondition() {
+                idx++;
+                if (idx < LOGIC_CONDITIONS.getMaxLogicConditionCount() - 1) {
+                    MSP.send_message(MSPCodes.MSP2_INAV_LOGIC_CONDITIONS_SINGLE, [idx], false, nextLogicCondition);
+                } else {
+                    MSP.send_message(MSPCodes.MSP2_INAV_LOGIC_CONDITIONS_SINGLE, [idx], false, callback);
+                }
+            }
+        } else {
+            MSP.send_message(MSPCodes.MSP2_INAV_LOGIC_CONDITIONS, false, false, callback);
+        }
     }
 
     self.sendLogicConditions = function (onCompleteCallback) {
@@ -3063,6 +3102,9 @@ var mspHelper = (function (gui) {
                         (new Uint32Array(buf))[0] = fi32;
                         value = (new Float32Array(buf))[0];
                         break;
+                    case "string":
+                        value = resp.data.readString();
+                        break;
                     default:
                         throw "Unknown setting type " + setting.type;
                 }
@@ -3105,6 +3147,11 @@ var mspHelper = (function (gui) {
                     (new Float32Array(buf))[0] = value;
                     var if32 = (new Uint32Array(buf))[0];
                     data.push32(if32);
+                    break;
+                case "string":
+                    for (var ii = 0; ii < value.length; ii++) {
+                        data.push(value.charCodeAt(ii));
+                    }
                     break;
                 default:
                     throw "Unknown setting type " + setting.type;
@@ -3154,6 +3201,15 @@ var mspHelper = (function (gui) {
     self.loadMotors = function (callback) {
         MSP.send_message(MSPCodes.MSP_MOTOR, false, false, callback);
     };
+
+    self.getTarget = function(callback) {
+        MSP.send_message(MSPCodes.MSP_FC_VERSION, false, false, function(resp){
+            var target = resp.data.readString();
+            if (callback) {
+                callback(target);
+            }
+        });
+    }
 
     self.getCraftName = function (callback) {
         MSP.send_message(MSPCodes.MSP_NAME, false, false, function (resp) {
@@ -3227,6 +3283,7 @@ var mspHelper = (function (gui) {
     self.loadProgrammingPidStatus = function (callback) {
         MSP.send_message(MSPCodes.MSP2_INAV_PROGRAMMING_PID_STATUS, false, false, callback);
     };
+
 
     return self;
 })(GUI);

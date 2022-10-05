@@ -141,18 +141,41 @@
     },
 
     "serialPortOpened": {
-        "message": "Serial port <span style=\"color: #37a8db\">successfully</span> opened with ID: $1"
+        "message": "MSP connection <span style=\"color: #37a8db\">successfully</span> opened with ID: $1"
     },
     "serialPortOpenFail": {
-        "message": "<span style=\"color: red\">Failed</span> to open serial port"
+        "message": "<span style=\"color: red\">Failed</span> to open MSP connection"
     },
     "serialPortClosedOk": {
-        "message": "Serial port <span style=\"color: #37a8db\">successfully</span> closed"
+        "message": "MSP connection <span style=\"color: #37a8db\">successfully</span> closed"
     },
     "serialPortClosedFail": {
-        "message": "<span style=\"color: red\">Failed</span> to close serial port"
+        "message": "<span style=\"color: red\">Failed</span> to close MSP connection"
     },
-
+    "serialPortUnrecoverable": {
+        "message": "Unrecoverable <span style=\"color: red\">failure</span> of serial connection, disconnecting...'"
+    },
+    "connectionConnected": {
+        "message": "Connected to: $1"
+    },
+    "connectionBleType": {
+        "message": "BLE device type: $1"
+    },
+    "connectionBleNotSupported" : {
+        "message": "<span style=\"color: red\">Connection error:</span> Firmware doesn't support BLE connections. Abort."
+    },
+    "connectionBleInterrupted": {
+        "message": "The connection was unexpectedly interrupted."
+    },
+    "connectionBleError": {
+        "message": "Error while opening BLE device: $1"
+    },
+    "connectionBleCliEnter": {
+        "message": "Connection over BLE active, output might be slower than usual."
+    },
+    "connectionUdpTimeout": {
+        "message": "UDP connection timed out."
+    },
     "usbDeviceOpened": {
         "message": "USB device <span style=\"color: #37a8db\">successfully</span> opened with ID: $1"
     },
@@ -909,6 +932,12 @@
     "configurationLaunchIdleThrHelp": {
         "message": "Idle throttle - throttle to be set before launch sequence is initiated. If set below minimum throttle it will force motor stop or at idle throttle (depending if the MOTOR_STOP is enabled). If set above minimum throttle it will force throttle to this value (if MOTOR_STOP is enabled it will be handled according to throttle stick position). Default: 1000 [1000-2000]"
     },
+    "configurationLaunchIdleDelay": {
+        "message": "Idle Throttle Delay"
+    },
+    "configurationLaunchIdleDelayHelp": {
+        "message": "Set a time delay between raising the throttle for the launch, and the motor starting at idle throttle. Default: 0 [0-60000]"
+    },
     "configurationLaunchMotorDelay": {
         "message": "Motor Delay"
     },
@@ -1013,15 +1042,6 @@
     },
     "configurationSPIProtocol": {
         "message": "RX SPI protocol"
-    },
-    "configurationPersonalization": {
-        "message": "Personalization"
-    },
-    "configurationCraftName": {
-        "message": "Craft Name"
-    },
-    "configurationCraftNameHelp": {
-        "message": "Craft name. Can be displayed by OSD and by compatible RC systems."
     },
     "configurationEepromSaved": {
         "message": "EEPROM <span style=\"color: #37a8db\">saved</span>: Configuration"
@@ -1146,8 +1166,8 @@
     "portsFunction_DJI_FPV": {
         "message": "DJI FPV VTX"
     },
-    "portsFunction_HDZERO_VTX": {
-        "message": "HDZero VTX"
+    "portsFunction_MSP_DISPLAYPORT": {
+        "message": "MSP Displayport"
     },
     "portsFunction_IMU2": {
         "message": "Secondary IMU"
@@ -1365,6 +1385,12 @@
     "pidTuning_TPABreakPoint": {
         "message": "TPA Breakpoint"
     },
+    "pidTuning_FW_TPATimeConstant": {
+        "message": "Fixed Wing TPA Time Constant"
+    },
+    "pidTuning_FW_TPATimeConstantHelp": {
+        "message": "TPA smoothing and delay time constant to reflect non-instant speed/throttle response of the plane."
+    },
     "pidTuning_fwLevelTrimMechanics": {
         "message": "Fixed Wing Level Trim"
     },
@@ -1529,6 +1555,18 @@
     },
     "adjustmentsMax": {
         "message": "Max"
+    },
+    "adjustmentsGroupRates": {
+        "message": "Rates & Expo"
+    },
+    "adjustmentsGroupPIDTuning": {
+        "message": "PID Tuning"
+    },
+    "adjustmentsGroupNavigationFlight" : {
+        "message": "Navigation and Flight"
+    },
+    "adjustmentsGroupMisc": {
+        "message": "Misc"
     },
     "adjustmentsFunction0": {
         "message": "No changes"
@@ -1700,6 +1738,15 @@
     },
     "adjustmentsFunction56": {
         "message": "Control Smoothness Adjustment"
+    },
+    "adjustmentsFunction57": {
+        "message": "Fixed Wing TPA Time Constant"
+    },
+    "adjustmentsFunction58": {
+        "message": "Fixed Wing Level Trim"
+    },
+    "adjustmentsFunction59": {
+        "message": "Multi Mission Index Adjustment"
     },
     "adjustmentsSave": {
         "message": "Save"
@@ -2132,6 +2179,9 @@
     "firmwareFlasherOptionLabelSelectFirmwareVersionFor": {
         "message": "Choose a Firmware version for"
     },
+    "firmwareFlasherButtonAutoSelect": {
+        "message": "Auto-select Target"
+    },
     "firmwareFlasherButtonLoadLocal": {
         "message": "Load Firmware [Local]"
     },
@@ -2166,7 +2216,7 @@
         "message": "Warning"
     },
     "firmwareFlasherWarningText": {
-        "message": "Please do <span style=\"color: red\">not</span> try to flash <strong>non-iNAV</strong> hardware with this firmware flasher.<br />Do <span style=\"color: red\">not</span> <strong>disconnect</strong> the board or <strong>turn off</strong> your computer while flashing.<br /><br /><strong>Note: </strong>STM32 bootloader is stored in ROM, it cannot be bricked.<br /><strong>Note: </strong><span style=\"color: red\">Auto-Connect</span> is always disabled while you are inside firmware flasher.<br /><strong>Note: </strong>Make sure you have a backup; some upgrades/downgrades will wipe your configuration.<br /><strong>Note:</strong> If you have problems flashing try disconnecting all cables from your FC first, try rebooting, upgrade chrome, upgrade drivers.<br /><strong>Note:</strong> When flashing boards that have directly connected USB sockets (SPRacingF3Mini, Sparky, ColibriRace, etc) ensure you have read the USB Flashing section of the INAV manual and have the correct software and drivers installed"
+        "message": "Please do <span style=\"color: red\">not</span> try to flash <strong>non-iNAV</strong> hardware with this firmware flasher.<br />Do <span style=\"color: red\">not</span> <strong>disconnect</strong> the board or <strong>turn off</strong> your computer while flashing.<br /><br /><strong>Note: </strong>STM32 bootloader is stored in ROM, it cannot be bricked.<br /><!--strong>Note: </strong><span style=\"color: red\">Auto-Connect</span> is always disabled while you are inside firmware flasher.<br / --><strong>Note: </strong>Make sure you have a backup; some upgrades/downgrades will wipe your configuration.<br /><strong>Note:</strong> If you have problems flashing try disconnecting all cables from your FC first, try rebooting, upgrade chrome, upgrade drivers.<br /><strong>Note:</strong> When flashing boards that have directly connected USB sockets (Matek H743-SLIM, Holybro Kakute etc) ensure you have read the USB Flashing section of the INAV manual and have the correct software and drivers installed"
     },
     "firmwareFlasherRecoveryHead": {
         "message": "<strong>Recovery / Lost communication<strong>"
@@ -2944,11 +2994,17 @@
     "osd_video_format": {
         "message" : "Video Format"
     },
+    "osd_craft_name": {
+        "message" : "Craft Name"
+    },
     "osd_units": {
         "message" : "Units"
     },
     "osd_main_voltage_decimals": {
         "message" : "Voltage Decimals"
+    },
+    "osd_mah_used_precision": {
+        "message" : "mAh Used Precision"
     },
     "osd_coordinate_digits": {
         "message" : "Coordinate Digits"
@@ -2967,6 +3023,12 @@
       },
     "osd_crosshairs_style": {
         "message" : "Crosshairs Style"
+    },
+    "osd_horizon_offset": {
+        "message" : "AHI & HUD offset"
+    },
+    "osd_horizon_offset_help" : {
+        "message" : "Move the HUD and AHI up or down on the OSD to get it level with the actual horizon. The AHI can appear high or low depending on the camera angle in flight. <span style='color:red;'>NOTE: </span> This does not work with the Pixel OSD. For that use the `osd_ahi_vertical_offset` command in the CLI."
     },
     "osd_left_sidebar_scroll": {
         "message" : "Left Sidebar Scroll"
@@ -3466,6 +3528,21 @@
     "osdElement_ESC_TEMPERATURE_HELP": {
         "message": "Temperature of the ESC read from DSHOT telemetry"
     },
+    "osdGroupSwitchIndicators": {
+        "message": "Switch Indicators"
+    },
+    "osdElement_SWITCH_INDICATOR_0": {
+        "message": "Switch Indicator 1"
+    },
+    "osdElement_SWITCH_INDICATOR_1": {
+        "message": "Switch Indicator 2"
+    },
+    "osdElement_SWITCH_INDICATOR_2": {
+        "message": "Switch Indicator 3"
+    },
+    "osdElement_SWITCH_INDICATOR_3": {
+        "message": "Switch Indicator 4"
+    },
     "osdGroupGVars": {
         "message": "Global Variables"
     },
@@ -3546,6 +3623,24 @@
     },
     "osd_dji_cn_alternating_duration": {
         "message" : "Craft Name alternating duration (in 1/10 sec)"
+    },
+    "osd_switch_indicator_settings": {
+        "message" : "Switch Indicator Settings"
+    },
+    "osd_switch_indicators_align_left": {
+        "message" : "Align switch names to left of switches"
+    },
+    "osdSwitchInd0": {
+        "message" : "Switch 1"
+    },
+    "osdSwitchInd1": {
+        "message" : "Switch 2"
+    },
+    "osdSwitchInd2": {
+        "message" : "Switch 3"
+    },
+    "osdSwitchInd3": {
+        "message" : "Switch 4"
     },
     "osd_font_default": {
         "message" : "Default"
@@ -4034,7 +4129,7 @@
         "message": "Should be enabled on Airplanes, Rovers and Boats. Should not be enabled on Multirotors! On Multirotors, when Airmode is active, motors will not stop."
     },
     "reversibleEscWarning": {
-        "message": "When Reversible Motors are used, set Motors IDLE power ot 0%"
+        "message": "When Reversible Motors are used, set Motors IDLE power to 0%"
     },
     "dynamic_gyro_notch_enabled_help": {
         "message": "Matrix Gyro Filter is the new generation of dynamic gyro notches available in INAV. It is recommended to enable it on all Multirotor builds on F4 and F7 flight controllers."
@@ -4203,5 +4298,50 @@
     },
     "BLACKBOX_FEATURE_MOTORS": {
         "message": "Motors output"
+    },
+    "BLACKBOX_FEATURE_GYRO_RAW": {
+        "message": "Gyro RAW (no filtering)"
+    },
+    "BLACKBOX_FEATURE_GYRO_PEAKS_ROLL": {
+        "message": "Gyro Noise peak freq. Roll"
+    },
+    "BLACKBOX_FEATURE_GYRO_PEAKS_PITCH": {
+        "message": "Gyro Noise peak freq. Pitch"
+    },
+    "BLACKBOX_FEATURE_GYRO_PEAKS_YAW": {
+        "message": "Gyro Noise peak freq. Yaw"
+    },
+    "axisRoll": {
+        "message": "Roll"
+    },
+    "axisPitch": {
+        "message": "Pitch"
+    },
+    "axisYaw": {
+        "message": "Yaw"
+    },
+    "showAdvancedPIDs": {
+        "message": "Show advanced PID controllers"
+    },
+    "rc_filter_lpf_hz": {
+        "message": "Manual LPF Hz"
+    },
+    "rc_filter_smoothing_factor": {
+        "message": "Auto Smoothing Factor"
+    },
+    "rc_filter_auto": {
+        "message": "Use automatic RC smoothing"
+    },
+    "rcSmoothing": {
+        "message": "RC Smoothing"
+    },
+    "throttle_scale": {
+        "message": "Throttle scale"
+    },
+    "throttle_scale_help": {
+        "message": "Allow to limit effective power fed to the motors. Throttle Scale 1 mean there is no power limiting. Throttle Scale 0.5 means throttle position will be cut in half before passed to the motors."
+    },
+    "nmeaWarning": {
+        "message": "NMEA protocol is deprecated and might be removed in the future. Please use UBLOX or UBLOX7 protocol instead."
     }
 }

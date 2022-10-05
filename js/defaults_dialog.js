@@ -12,7 +12,7 @@ helper.defaultsDialog = (function () {
     let $container;
 
     let data = [{
-        "title": 'Mini Quad with 3"-7" propellers',
+        "title": 'Mini Quad with 3"-5" propellers',
         "id": 2,
         "notRecommended": false,
         "reboot": true,
@@ -105,11 +105,11 @@ helper.defaultsDialog = (function () {
             },
             {
                 key: "d_boost_min",
-                value: 0.5
+                value: 0.8
             },
             {
                 key: "d_boost_max",
-                value: 1.5
+                value: 1.2
             },
             {
                 key: "antigravity_gain",
@@ -124,11 +124,11 @@ helper.defaultsDialog = (function () {
             */
             {
                 key: "rc_yaw_expo",
-                value: 70
+                value: 75
             },
             {
                 key: "rc_expo",
-                value: 70
+                value: 75
             },
             {
                 key: "roll_rate",
@@ -195,6 +195,201 @@ helper.defaultsDialog = (function () {
             {
                 key: "applied_defaults",
                 value: 2
+            },
+            {
+                key: "failsafe_procedure",
+                value: "DROP"
+            }
+        ]
+    },
+    {
+        "title": 'Mini Quad with 7" propellers',
+        "id": 5,
+        "notRecommended": false,
+        "reboot": true,
+        "mixerToApply": 3,
+        "settings": [
+            {
+                key: "model_preview_type",
+                value: 3
+            },
+            /*
+            System
+            */
+            {
+                key: "gyro_hardware_lpf",
+                value: "256HZ"
+            },
+            {
+                key: "looptime",
+                value: 500
+            },
+            {
+                key: "motor_pwm_protocol",
+                value: "DSHOT300"
+            },
+            /*
+            Filtering
+            */
+            {
+                key: "gyro_main_lpf_hz",
+                value: 90
+            },
+            {
+                key: "gyro_main_lpf_type",
+                value: "PT1"
+            },
+            {
+                key: "dterm_lpf_hz",
+                value: 80
+            },
+            {
+                key: "dterm_lpf_type",
+                value: "PT3"
+            },
+            {
+                key: "dterm_lpf2_hz",
+                value: 0
+            },
+            {
+                key: "dterm_lpf2_type",
+                value: "PT1"
+            },
+            {
+                key: "dynamic_gyro_notch_enabled",
+                value: "ON"
+            },
+            {
+                key: "dynamic_gyro_notch_q",
+                value: 250
+            },
+            {
+                key: "dynamic_gyro_notch_min_hz",
+                value: 60
+            },
+            {
+                key: "setpoint_kalman_enabled",
+                value: "ON"
+            },
+            {
+                key: "setpoint_kalman_q",
+                value: 200
+            },
+            {
+                key: "smith_predictor_delay",   // Enable Smith Predictor 
+                value: 1.5
+            },   
+            /*
+            Mechanics
+            */
+            {
+                key: "airmode_type",
+                value: "THROTTLE_THRESHOLD"
+            },
+            {
+                key: "airmode_throttle_threshold",
+                value: 1150
+            },
+            {
+                key: "mc_iterm_relax",
+                value: "RPY"
+            },
+            {
+                key: "d_boost_min",
+                value: 0.8
+            },
+            {
+                key: "d_boost_max",
+                value: 1.2
+            },
+            {
+                key: "antigravity_gain",
+                value: 2
+            },
+            {
+                key: "antigravity_accelerator",
+                value: 5
+            },
+            /*
+            Rates
+            */
+            {
+                key: "rc_yaw_expo",
+                value: 75
+            },
+            {
+                key: "rc_expo",
+                value: 75
+            },
+            {
+                key: "roll_rate",
+                value: 70
+            },
+            {
+                key: "pitch_rate",
+                value: 70
+            },
+            {
+                key: "yaw_rate",
+                value: 60
+            },
+            /*
+            PIDs
+            */
+            {
+                key: "mc_p_pitch",
+                value: 44
+            },
+            {
+                key: "mc_i_pitch",
+                value: 85
+            },
+            {
+                key: "mc_d_pitch",
+                value: 28
+            },
+            {
+                key: "mc_p_roll",
+                value: 40
+            },
+            {
+                key: "mc_i_roll",
+                value: 75
+            },
+            {
+                key: "mc_d_roll",
+                value: 26
+            },
+            {
+                key: "mc_p_yaw",
+                value: 40
+            },
+            {
+                key: "mc_i_yaw",
+                value: 80
+            },
+            /*
+             * TPA
+             */
+            {
+                key: "tpa_rate",
+                value: 20
+            },
+            {
+                key: "tpa_breakpoint",
+                value: 1200
+            },
+            {
+                key: "platform_type",
+                value: "MULTIROTOR"
+            },
+            {
+                key: "applied_defaults",
+                value: 5
+            },
+            {
+                key: "failsafe_procedure",
+                value: "DROP"
             }
         ]
     },
@@ -283,19 +478,23 @@ helper.defaultsDialog = (function () {
             },
             {
                 key: "nav_fw_pos_z_p",
-                value: 15
+                value: 25
             },
             {
-                key: "nav_fw_pos_z_d",
+                key: "nav_fw_pos_z_i",
                 value: 5
             },
             {
+                key: "nav_fw_pos_z_d",
+                value: 8
+            },
+            {
                 key: "nav_fw_pos_xy_p",
-                value: 60
+                value: 55
             },
             {
                 key: "fw_turn_assist_pitch_gain",
-                value: 0.5
+                value: 0.4
             },
             {
                 key: "max_angle_inclination_rll",
@@ -355,11 +554,19 @@ helper.defaultsDialog = (function () {
             },
             {
                 key: "imu_acc_ignore_rate",
-                value: 9
+                value: 7
             },
             {
                 key: "imu_acc_ignore_slope",
-                value: 5
+                value: 4
+            },
+            {
+                key: "imu_dcm_kp",
+                value: 1000
+            },
+            {
+                key: "imu_dcm_ki",
+                value: 0
             },
             {
                 key: "airmode_type",
@@ -389,6 +596,22 @@ helper.defaultsDialog = (function () {
                 key: "nav_wp_radius",
                 value: 5000
             },
+            {
+                key: "nav_fw_launch_max_angle",
+                value: 45
+            },
+            {
+                key: "nav_fw_launch_motor_delay",
+                value: 100
+            },
+            {
+                key: "nav_fw_launch_max_altitude",
+                value: 5000
+            },
+            {
+                key: "nav_fw_launch_climb_angle",
+                value: 25
+            },
         ],
         "features": [
             {
@@ -400,7 +623,7 @@ helper.defaultsDialog = (function () {
     {
         "title": 'Airplane without a Tail (Wing, Delta, etc)',
         "notRecommended": false,
-        "id": 3,
+        "id": 4,
         "reboot": true,
         "mixerToApply": 8,
         "settings": [
@@ -414,7 +637,7 @@ helper.defaultsDialog = (function () {
             },
             {
                 key: "applied_defaults",
-                value: 3
+                value: 4
             },
             {
                 key: "gyro_hardware_lpf",
@@ -482,19 +705,23 @@ helper.defaultsDialog = (function () {
             },
             {
                 key: "nav_fw_pos_z_p",
-                value: 15
+                value: 35
             },
             {
-                key: "nav_fw_pos_z_d",
+                key: "nav_fw_pos_z_i",
                 value: 5
             },
             {
+                key: "nav_fw_pos_z_d",
+                value: 10
+            },
+            {
                 key: "nav_fw_pos_xy_p",
-                value: 60
+                value: 70
             },
             {
                 key: "fw_turn_assist_pitch_gain",
-                value: 0.2
+                value: 0.3
             },
             {
                 key: "max_angle_inclination_rll",
@@ -561,6 +788,14 @@ helper.defaultsDialog = (function () {
                 value: 5
             },
             {
+                key: "imu_dcm_kp",
+                value: 1000
+            },
+            {
+                key: "imu_dcm_ki",
+                value: 0
+            },
+            {
                 key: "airmode_type",
                 value: "STICK_CENTER_ONCE"
             },
@@ -587,6 +822,22 @@ helper.defaultsDialog = (function () {
             {
                 key: "nav_wp_radius",
                 value: 5000
+            },
+            {
+                key: "nav_fw_launch_max_angle",
+                value: 75
+            },
+            {
+                key: "nav_fw_launch_motor_delay",
+                value: 100
+            },
+            {
+                key: "nav_fw_launch_max_altitude",
+                value: 5000
+            },
+            {
+                key: "nav_fw_launch_climb_angle",
+                value: 25
             },
         ],
         "features": [
@@ -714,7 +965,9 @@ helper.defaultsDialog = (function () {
                 GUI.tab_switch_cleanup(function () {
                     MSP.send_message(MSPCodes.MSP_SET_REBOOT, false, false, function () {
                         //noinspection JSUnresolvedVariable
-                        savingDefaultsModal.close();
+                        if (typeof savingDefaultsModal !== 'undefined') {
+                            savingDefaultsModal.close();
+                        }
                         GUI.log(chrome.i18n.getMessage('deviceRebooting'));
                         GUI.handleReconnect();
                     });
@@ -724,13 +977,21 @@ helper.defaultsDialog = (function () {
     };
 
     privateScope.setSettings = function (selectedDefaultPreset) {
+        var currentControlProfile = parseInt($("#profilechange").val());
+        var currentBatteryProfile = parseInt($("#batteryprofilechange").val());
         //Save analytics
         googleAnalytics.sendEvent('Setting', 'Defaults', selectedDefaultPreset.title);
         Promise.mapSeries(selectedDefaultPreset.settings, function (input, ii) {
             return mspHelper.getSetting(input.key);
         }).then(function () {
             Promise.mapSeries(selectedDefaultPreset.settings, function (input, ii) {
-                return mspHelper.setSetting(input.key, input.value);
+                if (FC.isControlProfileParameter(input.key)) {
+                    return privateScope.setSettingForAllControlProfiles(input.key, input.value);
+                } else if (FC.isBatteryProfileParameter(input.key)) {
+                    return privateScope.setSettingForAllBatteryProfiles(input.key, input.value);
+                } else {
+                    return mspHelper.setSetting(input.key, input.value);
+                }
             }).then(function () {
 
                 // If default preset is associated to a mixer, apply the mixer as well
@@ -747,17 +1008,48 @@ helper.defaultsDialog = (function () {
 
                     mspHelper.sendServoMixer(function () {
                         mspHelper.sendMotorMixer(function () {
-                            privateScope.finalize(selectedDefaultPreset);
-                        })
+                            MSP.send_message(MSPCodes.MSP_SELECT_SETTING, [currentControlProfile], false, function() {
+                                MSP.send_message(MSPCodes.MSP2_INAV_SELECT_BATTERY_PROFILE, [currentBatteryProfile], false, privateScope.finalize(selectedDefaultPreset));
+                            });
+                        });
                     });
                 } else {
-                    privateScope.finalize(selectedDefaultPreset);
+                    MSP.send_message(MSPCodes.MSP_SELECT_SETTING, [currentControlProfile], false, function() {
+                        MSP.send_message(MSPCodes.MSP2_INAV_SELECT_BATTERY_PROFILE, [currentBatteryProfile], false, privateScope.finalize(selectedDefaultPreset));
+                    });
                 }
-
-                
-
             })
         });
+    };
+
+    privateScope.setSettingForAllControlProfiles = function (key, value) {
+        MSP.send_message(MSPCodes.MSP_SELECT_SETTING, [0], false, function () {
+            mspHelper.setSetting(key, value, function() {
+                MSP.send_message(MSPCodes.MSP_SELECT_SETTING, [1], false, function () {
+                    mspHelper.setSetting(key, value, function() {
+                        MSP.send_message(MSPCodes.MSP_SELECT_SETTING, [2], false, function () {
+                            mspHelper.setSetting(key, value);
+                        });
+                    });
+                });
+            });
+        });
+        return;
+    };
+
+    privateScope.setSettingForAllBatteryProfiles = function (key, value) {
+        MSP.send_message(MSPCodes.MSP2_INAV_SELECT_BATTERY_PROFILE, [0], false, function () {
+            mspHelper.setSetting(key, value, function() {
+                MSP.send_message(MSPCodes.MSP2_INAV_SELECT_BATTERY_PROFILE, [1], false, function () {
+                    mspHelper.setSetting(key, value, function() {
+                        MSP.send_message(MSPCodes.MSP2_INAV_SELECT_BATTERY_PROFILE, [2], false, function () {
+                            mspHelper.setSetting(key, value);
+                        });
+                    });
+                });
+            });
+        });
+        return;
     };
 
     privateScope.onPresetClick = function (event) {

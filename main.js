@@ -147,7 +147,11 @@ $(document).ready(function () {
          }
     });
 
-    appUpdater.checkRelease(chrome.runtime.getManifest().version);
+    chrome.storage.local.get('update_notify', function(result) {
+        if (typeof result.update_notify === 'undefined' || result.update_notify) {
+            appUpdater.checkRelease(chrome.runtime.getManifest().version);
+        }
+    });
 
     // log library versions in console to make version tracking easier
     console.log('Libraries: jQuery - ' + $.fn.jquery + ', d3 - ' + d3.version + ', three.js - ' + THREE.REVISION);
@@ -653,7 +657,7 @@ function updateActivatedTab() {
 
 function updateFirmwareVersion() {
     if (CONFIGURATOR.connectionValid) {
-        $('#logo .firmware_version').text(CONFIG.flightControllerVersion);
+        $('#logo .firmware_version').text(CONFIG.flightControllerVersion + " [" + CONFIG.target + "]");
     } else {
         $('#logo .firmware_version').text(chrome.i18n.getMessage('fcNotConnected'));
     }

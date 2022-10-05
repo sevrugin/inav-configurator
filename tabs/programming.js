@@ -1,3 +1,4 @@
+/*global TABS,MSPChainerClass,mspHelper,googleAnalytics,GUI,LOGIC_CONDITIONS,PROGRAMMING_PID,GLOBAL_VARIABLES_STATUS,helper,LOGIC_CONDITIONS_STATUS,PROGRAMMING_PID_STATUS*/
 'use strict';
 
 TABS.programming = {};
@@ -39,7 +40,6 @@ TABS.programming.initialize = function (callback, scrollPosition) {
     }
 
     function processHtml() {
-
         LOGIC_CONDITIONS.init($('#subtab-lc'));
         LOGIC_CONDITIONS.render();
 

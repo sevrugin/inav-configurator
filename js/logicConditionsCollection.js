@@ -6,6 +6,12 @@ let LogicConditionsCollection = function () {
         data = [],
         $container;
 
+    let max_logicConditions = 64;
+
+    self.getMaxLogicConditionCount = function () {
+        return max_logicConditions;
+    }
+
     self.put = function (element) {
         data.push(element);
     };
@@ -21,6 +27,10 @@ let LogicConditionsCollection = function () {
     self.getCount = function () {
         return data.length
     };
+
+    self.isEnabled = function (lcID) {
+        return data[lcID].getEnabled();
+    }
 
     self.open = function () {
         self.render();
